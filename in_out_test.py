@@ -101,6 +101,3 @@ while True:
         index = Epc_listen.index(TagInfo[0])
         Epc_timer[index] = now_time
         Epc_anti[index] = int(TagInfo[4])
-
-
-tcp_client(close)

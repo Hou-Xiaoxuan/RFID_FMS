@@ -22,7 +22,7 @@ Fig = []
 # 等待tcp建立连接
 print('Wait for connection ...')
 tcp_client, addr = tcp_socket.accept()
-
+print('Connected')
 plt.ion()  # 开启interactive mode 成功的关键函数
 cnt = 0
 num_cnt = 0

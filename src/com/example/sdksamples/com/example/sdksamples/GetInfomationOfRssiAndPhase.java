@@ -32,7 +32,7 @@ public class GetInfomationOfRssiAndPhase {
 
             // LiuYin
             // TCP'connetion build
-            socket = new Socket("127.0.0.1", 1234);
+            socket = new Socket("192.168.3.32", 1234);
             os = socket.getOutputStream();
 
             // LiuYin

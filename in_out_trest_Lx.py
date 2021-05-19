@@ -41,8 +41,8 @@ class Statue(Enum):
 
 
 class Ant_Index(Enum):
-    ANT_IN = 1
-    ANT_OUT = 9
+    IN = 1
+    OUT = 9
 
 
 "核心工作代码"
@@ -70,28 +70,28 @@ def work(tcp_client):
             continue  # 若接收的Rssi为0，则接收错误，开启下一个循环
         elif TagInfo[0] not in ValidEpc:
             continue  # 标签不在库中，则接收错误，开启下一个循环
-        if(TagInfo[2] not in EpcListen):  # 对于新检测到的标签，加入监听列表并初始化Listen状态
+        if(TagInfo[0] not in EpcListen):  # 对于新检测到的标签，加入监听列表并初始化Listen状态
             EpcListen.append(TagInfo[0])
-            EpcStatue.append(Statue['NoN'])
+            EpcStatue.append(Statue.NoN.value)
 
         Change_Flag = True  # 标记是否有标签状态变化
         TagIndex, TagAnti = EpcListen.index(
-            TagInfo[0]), TagInfo[4]  # 得到标签再列表中的下表和时间
-        if(EpcStatue[TagIndex] != Statue['OUT'] and TagAnti == Ant_Index['OUT']):  # 标签出库
-            EpcStatue[TagIndex] = Statue['OUT']
-        elif(EpcStatue[TagIndex] != Statue['IN'] and TagAnti == Ant_Index['IN']):  # 标签入库
-            EpcStatue[TagIndex] = Statue['IN']
+            TagInfo[0]), int(TagInfo[4])  # 得到标签再列表中的下表和时间
+        if(EpcStatue[TagIndex] != Statue.OUT.value and TagAnti == Ant_Index.OUT.value):  # 标签出库
+            EpcStatue[TagIndex] = Statue.OUT.value
+        elif(EpcStatue[TagIndex] != Statue.IN.value and TagAnti == Ant_Index.IN.value):  # 标签入库
+            EpcStatue[TagIndex] = Statue.IN.value
         else:
             Change_Flag = False  # 未发生状态改变
 
         if(NowTime - LastUpdateTime > 5 and Change_Flag == True):
             # 如果上次改变大于5秒或10秒没有输出，则输出显示一次
             LastUpdateTime = NowTime
-            for index in EpcStatue:
-                print("%3d" % index, end=' ')
+            for index in EpcListen:
+                print("%3s" % index[7:9], end=' ')
             print("")
             for statue in EpcStatue:
-                print("%3s", statue, end=' ')
+                print("%3s" % statue, end=' ')
             print("")
 
 

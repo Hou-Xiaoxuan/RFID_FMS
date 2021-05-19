@@ -31,10 +31,20 @@ Epc_list = [
     "FFFF 0012 0000 0000 0000 0000", "FFFF 0013 0000 0000 0000 0000",
     "FFFF 0014 0000 0000 0000 0000", "FFFF 0015 0000 0000 0000 0000",
     "FFFF 0016 0000 0000 0000 0000", "FFFF 0017 0000 0000 0000 0000",
-    "FFFF 0018 0000 0000 0000 0000", "FFFF 0019 0000 0000 0000 0000"
+    "FFFF 0018 0000 0000 0000 0000", "FFFF 0019 0000 0000 0000 0000",
+    "FFFF 0020 0000 0000 0000 0000", "FFFF 0021 0000 0000 0000 0000",
+    "FFFF 0022 0000 0000 0000 0000", "FFFF 0023 0000 0000 0000 0000",
+    "FFFF 0024 0000 0000 0000 0000", "FFFF 0025 0000 0000 0000 0000",
+    "FFFF 0026 0000 0000 0000 0000", "FFFF 0027 0000 0000 0000 0000",
+    "FFFF 0028 0000 0000 0000 0000", "FFFF 0029 0000 0000 0000 0000"
 ]
 # 初始化标签 在库中
 Epc_statue = [statue_list.IN, statue_list.IN,
+              statue_list.IN, statue_list.IN,
+              statue_list.IN, statue_list.IN,
+              statue_list.IN, statue_list.IN,
+              statue_list.IN, statue_list.IN,
+              statue_list.IN, statue_list.IN,
               statue_list.IN, statue_list.IN,
               statue_list.IN, statue_list.IN,
               statue_list.IN, statue_list.IN,
@@ -53,6 +63,7 @@ print('Wait for connection ...')
 tcp_client, addr = tcp_socket.accept()
 print('Connected')
 time_print_start = 0
+elen = len(Epc_list)
 while True:
     i = 0
     now_time = time.time()
@@ -71,14 +82,14 @@ while True:
         if (antennaPort == antennaPort_list.NINE.value):
             Epc_statue[index] = statue_list.OUT.value
         i = i + 1
-    if now_time - time_print_start > 3:
+    if now_time - time_print_start > TIME_OUT:
         print(cnt)
         cnt = cnt + 1
         time_print_start = now_time
-        for i in range(0, 20):
+        for i in range(0, elen):
             print("%2d" % (i), end=' ')
         print("")
-        for i in range(0, 20):
+        for i in range(0, elen):
             if Epc_statue[i] == statue_list.IN.value:
                 print("IN", end=' ')
             else:

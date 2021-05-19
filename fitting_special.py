@@ -1,15 +1,14 @@
-﻿from typing import List
-from matplotlib.pyplot import pause, title
+﻿from matplotlib.pyplot import pause, title
 import numpy as np
-ListenEpc = ["FFFF 0000 0000 0000 0000 0000", "FFFF 0001 0000 0000 0000 0000",
-             "FFFF 0002 0000 0000 0000 0000", "FFFF 0003 0000 0000 0000 0000",
-             "FFFF 0004 0000 0000 0000 0000"]          # 实验中监控的标签列表
+ListenEpc = [
+    "FFFF 0002 0000 0000 0000 0000", "FFFF 0003 0000 0000 0000 0000",
+]  # 实验中监控的标签列表
 ListEpc = []            # EPC列表
 ListTime = []           # Time列表
 ListRssi = []           # RSSI列表
 # ListPhase = []          # PHASE列表
 FirstTime = 0           # 初始化一个开始时间，每次获得的开始时间不同
-
+color = ['-b', '-r', '-g', '-k', '-m', '-y']  # 曲线颜色\
 with open("./data.txt") as lines:
     """
     数据处理部分
@@ -18,8 +17,8 @@ with open("./data.txt") as lines:
 
     for line in lines:
         TagInfo = line.split('#')
-        if len(TagInfo) != 4:                   # 接收的TagInfo长度为4，分别为EPC, Time, Rssi, Phase，错误则开启下一个循环
-            print(TagInfo)
+        if len(TagInfo) != 5:                   # 接收的TagInfo长度为4，分别为EPC, Time, Rssi, Phase，错误则开启下一个循环
+            # print(TagInfo)
             continue
         elif float(TagInfo[2]) == 0.0:            # 若接收的Rssi为0，则接收错误，开启下一个循环
             continue
@@ -63,8 +62,8 @@ with open("./data.txt") as lines:
         # y_phase_fit = y_phase_fit.tolist()
 
         # plt.subplot(1, lenth, i+1)
-        plt.plot(x_time, y_rssi_fit, "-r")
+        plt.plot(x_time, y_rssi_fit, color[i])
         # plt.scatter(x_time, y_rssi, s=10, c="red", marker=".", alpha=1)
         # plt.title("Rssi")
-
+    plt.legend(ListEpc, loc='lower left', bbox_to_anchor=(0.77, 0.2))
     plt.show()

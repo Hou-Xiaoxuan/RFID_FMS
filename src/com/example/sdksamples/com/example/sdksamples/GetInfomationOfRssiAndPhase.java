@@ -43,7 +43,7 @@ public class GetInfomationOfRssiAndPhase {
             // Get the default settings
             Settings settings = reader.queryDefaultSettings();
             // see in item-test MaxThroughput Mode
-            settings.setRfMode(0);
+            settings.setRfMode(1000);
             // write by LiuYin
             settings.getReport().setIncludePhaseAngle(true);
             settings.getReport().setIncludePeakRssi(true);

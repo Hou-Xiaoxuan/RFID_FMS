@@ -1,6 +1,7 @@
 ﻿from matplotlib.pyplot import pause, title
 import numpy as np
 ListenEpc = [
+    "FFFF 0000 0000 0000 0000 0000", "FFFF 0001 0000 0000 0000 0000",
     "FFFF 0002 0000 0000 0000 0000", "FFFF 0003 0000 0000 0000 0000",
 ]  # 实验中监控的标签列表
 ListEpc = []            # EPC列表
@@ -8,8 +9,8 @@ ListTime = []           # Time列表
 ListRssi = []           # RSSI列表
 # ListPhase = []          # PHASE列表
 FirstTime = 0           # 初始化一个开始时间，每次获得的开始时间不同
-color = ['-b', '-r', '-g', '-k', '-m', '-y']  # 曲线颜色\
-with open("./data.txt") as lines:
+color = ['-b', '-r', '-g', '-k', '-m', '-y']  # 曲线颜色
+with open("./src/21-05-19-4标签顺序检测数据-ffff0000-ffff0003.txt") as lines:
     """
     数据处理部分
     分割后的数据： Epc-Time-Rssi-Phase
@@ -65,5 +66,6 @@ with open("./data.txt") as lines:
         plt.plot(x_time, y_rssi_fit, color[i])
         # plt.scatter(x_time, y_rssi, s=10, c="red", marker=".", alpha=1)
         # plt.title("Rssi")
-    plt.legend(ListEpc, loc='lower left', bbox_to_anchor=(0.77, 0.2))
+    plt.legend(ListEpc, loc='lower left',
+               bbox_to_anchor=(0.77, 0.2), fontsize='xx-large')
     plt.show()

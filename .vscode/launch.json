@@ -6,11 +6,29 @@
     "configurations": [
         {
             "type": "java",
-            "name": "Launch Current File",
+            "name": "Launch GetInfomationOfRssiAndPhase",
             "request": "launch",
-            "mainClass": "${file}",
+            "mainClass": "com.example.sdksamples.GetInfomationOfRssiAndPhase",
+            "projectName": "RFID_FMS_993d5798",
             "vmArgs": "-Dhostname=SpeedwayR-12-BE-43"
         },
+        {
+            "type": "java",
+            "name": "Launch KillTags",
+            "request": "launch",
+            "mainClass": "com.example.sdksamples.KillTags",
+            "projectName": "RFID_FMS_993d5798",
+            "vmArgs": [
+                "-Dhostname=SpeedwayR-12-BE-43",
+                "-DtargetTag=FFFFFFFFFFFFFFFFFFFFFFFF"
+            ]
+        },
+        // {
+        //     "type": "java",
+        //     "name": "Launch Current File",
+        //     "request": "launch",
+        //     "mainClass": "${file}",
+        // },
         {
             "name": "Python: 当前文件",
             "type": "python",

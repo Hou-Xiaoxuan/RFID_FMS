@@ -9,7 +9,6 @@ tcp_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 tcp_socket.bind(('127.0.0.1', 1234))
 # tcp开始侦听
 tcp_socket.listen()
-print('Connected')
 OwnEpc = ["FFFF 0000 0000 0000 0000 0000",
           "FFFF 0001 0000 0000 0000 0000",
           "FFFF 0002 0000 0000 0000 0000",
@@ -27,8 +26,6 @@ print('Wait for connection ...')
 tcp_client, addr = tcp_socket.accept()
 print('Connected')
 plt.ion()  # 开启interactive mode 成功的关键函数
-cnt = 0
-num_cnt = 0
 for i in OwnEpc:       # 若出现新标签，将新标签加入列表，为新标签创建各信息列表
     ListEpc.append(i)
     ListTime.append([])
@@ -43,11 +40,8 @@ while True:
     elif int(TagInfo[2] == 0):
         continue
     elif not (TagInfo[0] in OwnEpc):
-        num_cnt = num_cnt + 1
-        cnt = cnt + 1
         continue
     else:
-        cnt = cnt + 1
         if FirstTime == 0:                  # 第一次接收到Tag信息，将FirstTime初始化
             FirstTime = int(TagInfo[1])
 

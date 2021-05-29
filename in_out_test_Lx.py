@@ -1,8 +1,11 @@
-"""
-RFID 进出检测脚本，实时同步
-2021、05/18
-by LinXuan
-"""
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+'''
+@Time    : 2021/05/18
+@Author  : LinXuan
+@File    : in_out_test.py
+@Function: RFID 进出检测脚本，实时同步
+'''
 import socket
 import time
 from enum import Enum

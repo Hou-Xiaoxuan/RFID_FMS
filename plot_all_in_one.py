@@ -1,3 +1,11 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+'''
+@Time    : 2021/05/29
+@Author  : xv_rong
+@File    : plot_all_in_one.py
+@Function: 将所有信息在同一个图中画出
+'''
 import socket
 from typing import List
 import matplotlib.pyplot as plt
@@ -75,5 +83,3 @@ while True:
         figphase.set_ylim(0, 7)
         plt.ioff()
         plt.pause(0.0001)
-
-tcp_client(close)

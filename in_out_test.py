@@ -1,3 +1,11 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+'''
+@Time    : 2021/05/29
+@Author  : xv_rong
+@File    : in_out_test.py
+@Function: 进出测试
+'''
 import socket
 import time
 from enum import Enum

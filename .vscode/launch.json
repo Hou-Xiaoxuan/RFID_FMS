@@ -36,7 +36,8 @@
             "program": "${file}",
             "justMyCode": true,
             "args": [],
-            "console": "integratedTerminal"
+            "console": "integratedTerminal",
+            "postDebugTask": "manage_data"
         }
     ]
 }

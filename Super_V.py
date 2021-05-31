@@ -1,24 +1,53 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 '''
-@Time    : 2021/05/29
-@Author  : xv_rong
+@Time    : 2021/05/18
+@Author  : LinXuan
 @File    : Super_V.py
-@Function: 拟合Super-V区
+@Function: PhaseFitting
 '''
-from matplotlib.pyplot import pause, title
+import matplotlib.colors as mcolors
 import numpy as np
+import math
+import matplotlib.pyplot as plt
 listen_epc = [
-    "FFFF 0000 0000 0000 0000 0000", "FFFF 0001 0000 0000 0000 0000",
-    "FFFF 0002 0000 0000 0000 0000", "FFFF 0003 0000 0000 0000 0000",
+    "FFFF 0000 0000 0000 0000 0000",
+    "FFFF 0001 0000 0000 0000 0000",
+    "FFFF 0002 0000 0000 0000 0000",
+    "FFFF 0003 0000 0000 0000 0000",
+    "FFFF 0004 0000 0000 0000 0000",
 ]  # 实验中监控的标签列表
 list_epc = []            # EPC列表
 list_time = []           # Time列表
 list_rssi = []           # RSSI列表
 list_phase = []          # PHASE列表
 first_time = 0           # 初始化一个开始时间，每次获得的开始时间不同
-color = ['-b', '-r', '-g', '-k', '-m', '-y']  # 曲线颜色
-with open("./src/21-05-19-4标签顺序检测数据-ffff0000-ffff0003.txt") as lines:
+
+
+def process(olddata):
+    "粘合数据范围"
+    size = len(olddata)  # 数据量的大小
+    newdata = [0] * size
+    ct = 0
+    jump = 4
+    for i in range(1, size):
+        if(olddata[i] - olddata[i - 1] < -jump):
+            ct += 1
+        elif(olddata[i] - olddata[i - 1] > jump):
+            ct -= 1
+        newdata[i] = olddata[i] + ct * math.pi * 2
+    return newdata
+
+
+def regression(time, phase):
+    "多项式回归， 返回拟合后的数据"
+    parameter = np.polyfit(time, phase, 2)
+    func = np.poly1d(parameter)
+    phase_fit = func(time)
+    return phase_fit, -parameter[1] / (2 * parameter[0])
+
+
+with open("./data.txt") as lines:
     """
     数据处理部分
     分割后的数据： Epc-Time-Rssi-Phase
@@ -37,18 +66,35 @@ with open("./src/21-05-19-4标签顺序检测数据-ffff0000-ffff0003.txt") as l
                 list_epc.append(tag_info[0])
                 list_time.append([])
                 list_rssi.append([])
-                # ListPhase.append([])
+                list_phase.append([])
             tag_index = list_epc.index(tag_info[0])        # 找出当前Tag所处列表位置
 
             # 将相应Tag信息入列表
             list_time[tag_index].append(
                 (int(tag_info[1]) - first_time) / 1000000)        # 对时间处理为精度0.1s
             list_rssi[tag_index].append(float(tag_info[2]))
-            list_phase[tag_index].append(float(tag_index[3]))
+            list_phase[tag_index].append(float(tag_info[3]))
 
-    """数据拟合与画图"""
+    """粘合数据"""
 
-    import matplotlib.pyplot as plt
-    for now_epc in range(0, len(list_epc)):
-        for j in range(0, range(now_epc)):
-            down_cycle = 0
+    pos = [0 for i in range(0, len(list_epc))]
+    upper_phase = [[] for i in range(0, len(list_epc))]
+    upper_fit_phase = [[] for i in range(0, len(list_epc))]
+    for i in range(0, len(list_epc)):
+        upper_phase[i] = process(list_phase[i])
+        [upper_fit_phase[i], pos[i]] = regression(list_time[i], upper_phase[i])
+    colors = list(mcolors.TABLEAU_COLORS.keys())  # 颜色变化
+
+    sorted_pos = sorted(enumerate(pos), key=lambda x: x[1])
+    index = [i[0] for i in sorted_pos]
+    pos = [i[1] for i in sorted_pos]
+    plt.figure("order is" + str([list_epc[num][7:9] for num in index]))
+    for i in range(0, len(list_epc)):
+        plt.plot(list_time[i], upper_fit_phase[i],
+                 color=mcolors.TABLEAU_COLORS[colors[i]], marker='.', linestyle=':')
+        plt.scatter(list_time[i], upper_phase[i],
+                    color=mcolors.TABLEAU_COLORS[colors[i]], marker='*')
+    # list.sort(list_epc)
+    plt.legend([num[7:9] for num in list_epc], loc='lower left',
+               bbox_to_anchor=(0.77, 0.2), fontsize='xx-large')   # 设置图例
+    plt.show()

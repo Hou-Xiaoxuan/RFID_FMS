@@ -7,7 +7,7 @@
                 "reveal": "silent",
                 "focus": false,
                 "panel": "shared",
-                "showReuseMessage": false
+                "showReuseMessage": false,
             },
             "label": "manage_data",
             "type": "shell",
@@ -15,7 +15,6 @@
             "args": [
                 "./manage_data.py"
             ],
-            "dependsOrder": "sequence"
         }
     ]
 }

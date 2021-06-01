@@ -1,0 +1,21 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "presentation": {
+                "echo": false,
+                "reveal": "silent",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": false
+            },
+            "label": "manage_data",
+            "type": "shell",
+            "command": "python",
+            "args": [
+                "./manage_data.py"
+            ],
+            "dependsOrder": "sequence"
+        }
+    ]
+}

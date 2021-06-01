@@ -88,13 +88,15 @@ with open("./data.txt") as lines:
     sorted_pos = sorted(enumerate(pos), key=lambda x: x[1])
     index = [i[0] for i in sorted_pos]
     pos = [i[1] for i in sorted_pos]
-    plt.figure("order is" + str([list_epc[num][7:9] for num in index]))
+    plt.figure("order")
+    plt.title("order is " + str([list_epc[num][7:9] for num in index]))
     for i in range(0, len(list_epc)):
         plt.plot(list_time[i], upper_fit_phase[i],
                  color=mcolors.TABLEAU_COLORS[colors[i]], marker='.', linestyle=':')
         plt.scatter(list_time[i], upper_phase[i],
                     color=mcolors.TABLEAU_COLORS[colors[i]], marker='*')
     # list.sort(list_epc)
-    plt.legend([num[7:9] for num in list_epc], loc='lower left',
+    plt.legend([num[7:9] for num in list_epc], loc='best',
                bbox_to_anchor=(0.77, 0.2), fontsize='xx-large')   # 设置图例
+    plt.savefig('./Super_V.png', dpi=600)
     plt.show()

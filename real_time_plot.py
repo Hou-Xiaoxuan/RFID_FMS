@@ -9,6 +9,7 @@
 import threading
 import socket
 import matplotlib.pyplot as plt
+import matplotlib.colors as mcolors
 
 
 ListEpc = [
@@ -17,6 +18,11 @@ ListEpc = [
     "FFFF 0002 0000 0000 0000 0000",
     "FFFF 0003 0000 0000 0000 0000",
     "FFFF 0004 0000 0000 0000 0000",
+    "FFFF 0000 0001 0000 0000 0000",
+    "FFFF 0001 0001 0000 0000 0000",
+    "FFFF 0002 0001 0000 0000 0000",
+    "FFFF 0003 0001 0000 0000 0000",
+    "FFFF 0004 0001 0000 0000 0000",
 ]                                                        # EPC列表
 ListTime = [[] for i in range(0, len(ListEpc))]          # Time列表
 ListRssi = [[] for i in range(0, len(ListEpc))]          # RSSI列表
@@ -64,7 +70,7 @@ def get_tag_information():
 
 def plot():
     plt.ion()  # 开启interactive mod
-    color = ['blue', 'red', 'green', 'yellow', 'purple', 'pink', ]  # 曲线颜色
+    color = list(mcolors.TABLEAU_COLORS.keys())  # 颜色变化
     figrssi = plt.figure("RSSI")
     figrssi = figrssi.add_subplot(111)
     figphase = plt.figure("PHASE")

@@ -48,7 +48,7 @@ def main():
         for i in range(0, len(png_list)):
             new_name = cur_time + '-' + str(i) + '.png'
             dest_path = os.path.join(dir_path, new_name)
-            shutil.move(png_list[i], dest_path)
+            shutil.copy(png_list[i], dest_path)
 
 
 if __name__ == '__main__':

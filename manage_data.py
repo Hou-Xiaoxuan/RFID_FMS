@@ -37,7 +37,7 @@ def main():
 
         # 移动文件数据文件
         dest_path = os.path.join(dir_path, new_name)
-        shutil.move(file_path, dest_path)
+        shutil.copy(file_path, dest_path)
 
         # 移动png文件
         file_list = os.listdir()

@@ -10,7 +10,7 @@ ListRssi = []           # RSSI列表
 # ListPhase = []          # PHASE列表
 FirstTime = 0           # 初始化一个开始时间，每次获得的开始时间不同
 color = ['-b', '-r', '-g', '-k', '-m', '-y']  # 曲线颜色
-with open("./src/21-05-19-4标签顺序检测数据-ffff0000-ffff0003.txt") as lines:
+with open("./data.txt") as lines:
     """
     数据处理部分
     分割后的数据： Epc-Time-Rssi-Phase

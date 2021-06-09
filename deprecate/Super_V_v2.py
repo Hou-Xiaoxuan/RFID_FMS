@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 '''
-@Time    : 2021/05/18
-@Author  : LinXuan
-@File    : Super_V_2.py
-@Function: PhaseFitting
+@Time    : 2021/06/
+@Author  : xv_rong
+@File    : Super_V_v2.py
+@Function: 多排标签联合排序
 '''
 import matplotlib.colors as mcolors
 import numpy as np

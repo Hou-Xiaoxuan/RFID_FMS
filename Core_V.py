@@ -2,18 +2,20 @@
 # -*- coding: utf-8 -*-
 '''
 @Time    : 2021/05/18
-@Author  : xvrong
+@Author  : xv_rong
 @File    : Core_V.py
-@Function: PhaseFitting
+@Function: Core_V拟合，排序
 '''
 import matplotlib.colors as mcolors
 import numpy as np
 import math
 import matplotlib.pyplot as plt
 listen_epc = [
-    "FFFF 0005 0000 0000 0000 0000",
-    "FFFF 2006 0000 0000 0000 0000",
-    "FFFF 2007 0000 0000 0000 0000",
+    "FFFF 0000 0000 0000 0000 0000",
+    "FFFF 0001 0000 0000 0000 0000",
+    "FFFF 0002 0000 0000 0000 0000",
+    "FFFF 0003 0000 0000 0000 0000",
+    "FFFF 0004 0000 0000 0000 0000",
 ]  # 实验中监控的标签列表
 list_epc = []            # EPC列表
 list_time = []           # Time列表

@@ -13,7 +13,7 @@
             "type": "shell",
             "command": "python",
             "args": [
-                "./manage_data.py"
+                "./data/manage_data.py"
             ],
         }
     ]

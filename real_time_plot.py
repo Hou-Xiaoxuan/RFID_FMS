@@ -4,7 +4,7 @@
 @Time    : 2021/05/29
 @Author  : xv_rong
 @File    : real_time_plot.py
-@Function: 实时画图
+@Function: 多线程处理，实时画图
 '''
 import threading
 import socket

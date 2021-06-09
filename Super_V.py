@@ -4,7 +4,7 @@
 @Time    : 2021/05/18
 @Author  : LinXuan
 @File    : Super_V.py
-@Function: PhaseFitting
+@Function: Super_V拟合，排序
 '''
 import matplotlib.colors as mcolors
 import numpy as np

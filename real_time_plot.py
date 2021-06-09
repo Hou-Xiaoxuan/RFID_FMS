@@ -13,16 +13,9 @@ import matplotlib.colors as mcolors
 
 
 ListEpc = [
-    "FFFF 0000 0000 0000 0000 0000",
-    "FFFF 0001 0000 0000 0000 0000",
-    "FFFF 0002 0000 0000 0000 0000",
-    "FFFF 0003 0000 0000 0000 0000",
-    "FFFF 0004 0000 0000 0000 0000",
-    "FFFF 0000 0001 0000 0000 0000",
-    "FFFF 0001 0001 0000 0000 0000",
-    "FFFF 0002 0001 0000 0000 0000",
-    "FFFF 0003 0001 0000 0000 0000",
-    "FFFF 0004 0001 0000 0000 0000",
+    "FFFF 0005 0000 0000 0000 0000",
+    "FFFF 2006 0000 0000 0000 0000",
+    "FFFF 2007 0000 0000 0000 0000",
 ]                                                        # EPC列表
 ListTime = [[] for i in range(0, len(ListEpc))]          # Time列表
 ListRssi = [[] for i in range(0, len(ListEpc))]          # RSSI列表

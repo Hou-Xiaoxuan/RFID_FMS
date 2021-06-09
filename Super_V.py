@@ -11,11 +11,9 @@ import numpy as np
 import math
 import matplotlib.pyplot as plt
 listen_epc = [
-    "FFFF 0000 0000 0000 0000 0000",
-    "FFFF 0001 0000 0000 0000 0000",
-    "FFFF 0002 0000 0000 0000 0000",
-    "FFFF 0003 0000 0000 0000 0000",
-    "FFFF 0004 0000 0000 0000 0000",
+    "FFFF 0005 0000 0000 0000 0000",
+    "FFFF 2006 0000 0000 0000 0000",
+    "FFFF 2007 0000 0000 0000 0000",
 ]  # 实验中监控的标签列表
 list_epc = []            # EPC列表
 list_time = []           # Time列表
@@ -97,6 +95,6 @@ with open("./data.txt") as lines:
                     color=mcolors.TABLEAU_COLORS[colors[i]], marker='*')
     # list.sort(list_epc)
     plt.legend([num[7:9] for num in list_epc], loc='best',
-               bbox_to_anchor=(0.77, 0.2), fontsize='xx-large')   # 设置图例
+               bbox_to_anchor=(0.77, 0.2), fontsize='small')   # 设置图例
     plt.savefig('./Super_V.png', dpi=600)
     plt.show()

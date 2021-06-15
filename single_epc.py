@@ -131,9 +131,6 @@ with open("./data.txt") as lines:
     sorted_pos = sorted(enumerate(pos), key=lambda x: x[1])
     index = [i[0] for i in sorted_pos]
     pos = [i[1] for i in sorted_pos]
-    plt.figure()
-    # print("order is " + str([list_epc[num][7:9] for num in index]))
-    plt.title("order is " + str([list_epc[num][7:9] for num in index]))
     for i in range(0, len(list_epc)):
         plt.figure()
         # print("order is " + str([list_epc[num][7:9] for num in index]))

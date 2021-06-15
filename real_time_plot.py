@@ -13,9 +13,25 @@ import matplotlib.colors as mcolors
 
 
 ListEpc = [
-    "FFFF 0005 0000 0000 0000 0000",
-    "FFFF 2006 0000 0000 0000 0000",
-    "FFFF 2007 0000 0000 0000 0000",
+    "FFFF 0011 0000 0000 0000 0000",
+    "FFFF 0012 0000 0000 0000 0000",
+    "FFFF 0013 0000 0000 0000 0000",
+    "FFFF 0014 0000 0000 0000 0000",
+    "FFFF 0015 0000 0000 0000 0000",
+    "FFFF 0016 0000 0000 0000 0000",
+    "FFFF 0017 0000 0000 0000 0000",
+    "FFFF 0018 0000 0000 0000 0000",
+    "FFFF 0019 0000 0000 0000 0000",
+    "FFFF 0020 0000 0000 0000 0000",
+    "FFFF 0021 0000 0000 0000 0000",
+    "FFFF 0022 0000 0000 0000 0000",
+    "FFFF 0023 0000 0000 0000 0000",
+    "FFFF 0024 0000 0000 0000 0000",
+    "FFFF 0025 0000 0000 0000 0000",
+    "FFFF 0026 0000 0000 0000 0000",
+    "FFFF 0027 0000 0000 0000 0000",
+    "FFFF 0028 0000 0000 0000 0000",
+    "FFFF 0029 0000 0000 0000 0000",
 ]                                                        # EPC列表
 ListTime = [[] for i in range(0, len(ListEpc))]          # Time列表
 ListRssi = [[] for i in range(0, len(ListEpc))]          # RSSI列表
@@ -104,17 +120,17 @@ def main():
     # 获取reader信息线程
     t1 = threading.Thread(target=get_tag_information)
     # 画图线程
-    t2 = threading.Thread(target=plot)
+    # t2 = threading.Thread(target=plot)
     # 设置为守护线程
     t1.setDaemon(True)
-    t2.setDaemon(True)
+    # t2.setDaemon(True)
     # 开始获取reader信息线程
     t1.start()
     # 开始画图线程
-    t2.start()
+    # t2.start()
     # 阻塞主线程
     t1.join()
-    t2.join()
+    # t2.join()
 
 
 if __name__ == "__main__":

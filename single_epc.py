@@ -11,25 +11,25 @@ import numpy as np
 import math
 import matplotlib.pyplot as plt
 listen_epc = [
-    "FFFF 2007 0000 0000 0000 0000",
-    "FFFF 2006 0000 0000 0000 0000",
-    "FFFF 0005 0000 0000 0000 0000",
-    # "FFFF 0014 0000 0000 0000 0000",
-    # "FFFF 0015 0000 0000 0000 0000",
-    # "FFFF 0016 0000 0000 0000 0000",
-    # "FFFF 0017 0000 0000 0000 0000",
-    # "FFFF 0018 0000 0000 0000 0000",
-    # "FFFF 0019 0000 0000 0000 0000",
-    # "FFFF 0020 0000 0000 0000 0000",
-    # "FFFF 0021 0000 0000 0000 0000",
-    # "FFFF 0022 0000 0000 0000 0000",
-    # "FFFF 0023 0000 0000 0000 0000",
-    # "FFFF 0024 0000 0000 0000 0000",
-    # "FFFF 0025 0000 0000 0000 0000",
-    # "FFFF 0026 0000 0000 0000 0000",
-    # "FFFF 0027 0000 0000 0000 0000",
-    # "FFFF 0028 0000 0000 0000 0000",
-    # "FFFF 0029 0000 0000 0000 0000",
+    "FFFF 0011 0000 0000 0000 0000",
+    "FFFF 0012 0000 0000 0000 0000",
+    "FFFF 0013 0000 0000 0000 0000",
+    "FFFF 0014 0000 0000 0000 0000",
+    "FFFF 0015 0000 0000 0000 0000",
+    "FFFF 0016 0000 0000 0000 0000",
+    "FFFF 0017 0000 0000 0000 0000",
+    "FFFF 0018 0000 0000 0000 0000",
+    "FFFF 0019 0000 0000 0000 0000",
+    "FFFF 0020 0000 0000 0000 0000",
+    "FFFF 0021 0000 0000 0000 0000",
+    "FFFF 0022 0000 0000 0000 0000",
+    "FFFF 0023 0000 0000 0000 0000",
+    "FFFF 0024 0000 0000 0000 0000",
+    "FFFF 0025 0000 0000 0000 0000",
+    "FFFF 0026 0000 0000 0000 0000",
+    "FFFF 0027 0000 0000 0000 0000",
+    "FFFF 0028 0000 0000 0000 0000",
+    "FFFF 0029 0000 0000 0000 0000",
 ]  # 实验中监控的标签列表
 list_epc = []            # EPC列表
 list_time = []           # Time列表
@@ -123,28 +123,30 @@ with open("./data.txt") as lines:
     core_phase = [[] for i in range(0, len(list_epc))]
     core_time = [[] for i in range(0, len(list_epc))]
     fit_phase = [[] for i in range(0, len(list_epc))]
-    for i in range(0, len(list_epc)):
-        [core_time[i], core_phase[i]] = process(list_time[i], list_phase[i])
-        [fit_phase[i], pos[i]] = regression(core_time[i], core_phase[i])
+    # for i in range(0, len(list_epc)):
+    #     [core_time[i], core_phase[i]] = process(list_time[i], list_phase[i])
+    #     [fit_phase[i], pos[i]] = regression(core_time[i], core_phase[i])
     colors = list(mcolors.TABLEAU_COLORS.keys())  # 颜色变化
 
     sorted_pos = sorted(enumerate(pos), key=lambda x: x[1])
     index = [i[0] for i in sorted_pos]
     pos = [i[1] for i in sorted_pos]
-    plt.figure("order")
-    print("order is " + str([list_epc[num][7:9] for num in index]))
+    plt.figure()
+    # print("order is " + str([list_epc[num][7:9] for num in index]))
     plt.title("order is " + str([list_epc[num][7:9] for num in index]))
     for i in range(0, len(list_epc)):
-        plt.plot(core_time[i], fit_phase[i],
-                 color=mcolors.TABLEAU_COLORS[colors[i]], marker='.', linestyle=':')
+        plt.figure()
+        # print("order is " + str([list_epc[num][7:9] for num in index]))
+        plt.title(str(list_epc[i][7:9]))
+        # plt.plot(core_time[i], fit_phase[i],
+        #          color=mcolors.TABLEAU_COLORS[colors[i]], marker='.', linestyle=':')
 
         plt.scatter(list_time[i], list_phase[i],
-                    color=mcolors.TABLEAU_COLORS[colors[i + 1]], marker='*')
+                    color=mcolors.TABLEAU_COLORS[colors[0]], marker='*')
 
-        plt.scatter(core_time[i], core_phase[i],
-                    color=mcolors.TABLEAU_COLORS[colors[i]], marker='*')
+        # plt.scatter(core_time[i], core_phase[i],
+        #             color=mcolors.TABLEAU_COLORS[colors[i]], marker='*')
     # list.sort(list_epc)
-    plt.legend([num[7:9] for num in list_epc], loc='best',
-               bbox_to_anchor=(0.77, 0.2), fontsize='small')   # 设置图例
-    plt.savefig('./Super_V.png', dpi=600)
-    plt.show()
+    # plt.legend([num[7:9] for num in list_epc], loc='best',
+    #            bbox_to_anchor=(0.77, 0.2), fontsize='small')   # 设置图例
+        plt.savefig('./' + str(list_epc[i][7:9]) + '.png', dpi=600)

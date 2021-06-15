@@ -11,9 +11,9 @@ import numpy as np
 import math
 import matplotlib.pyplot as plt
 listen_epc = [
-    "FFFF 0005 0000 0000 0000 0000",
-    "FFFF 2006 0000 0000 0000 0000",
     "FFFF 2007 0000 0000 0000 0000",
+    "FFFF 2006 0000 0000 0000 0000",
+    "FFFF 0005 0000 0000 0000 0000",
 ]  # 实验中监控的标签列表
 list_epc = []            # EPC列表
 list_time = []           # Time列表
@@ -87,6 +87,7 @@ with open("./data.txt") as lines:
     index = [i[0] for i in sorted_pos]
     pos = [i[1] for i in sorted_pos]
     plt.figure("order")
+    print("order is " + str([list_epc[num][7:9] for num in index]))
     plt.title("order is " + str([list_epc[num][7:9] for num in index]))
     for i in range(0, len(list_epc)):
         plt.plot(list_time[i], upper_fit_phase[i],

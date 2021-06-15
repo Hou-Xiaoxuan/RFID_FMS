@@ -75,7 +75,7 @@ public class KillTags implements TagOpCompleteListener {
 
             // this one is optional but you can have it on to prove the tag was
             // killed
-            //reader.setTagReportListener(new TagReportListenerImplementation());
+            // reader.setTagReportListener(new TagReportListenerImplementation());
 
             // this one gets the operation complete on the kill password and
             // performs the kill
@@ -98,6 +98,7 @@ public class KillTags implements TagOpCompleteListener {
             reader.disconnect();
 
             System.out.println("Done");
+            s.close();
         } catch (OctaneSdkException ex) {
             System.out.println(ex.getMessage());
         } catch (Exception ex) {

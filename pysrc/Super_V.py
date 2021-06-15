@@ -45,7 +45,7 @@ def regression(time, phase):
     return phase_fit, -parameter[1] / (2 * parameter[0])
 
 
-with open("./data.txt") as lines:
+with open("../data.txt") as lines:
     """
     数据处理部分
     分割后的数据： Epc-Time-Rssi-Phase

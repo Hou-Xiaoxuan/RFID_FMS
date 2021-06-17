@@ -1,14 +1,48 @@
-## Getting Started
+# 实验记录
 
-Welcome to the VS Code Java world. Here is a guideline to help you get started to write Java code in Visual Studio Code.
+# 2021-6-17
 
-## Folder Structure
+### 实验环境：
 
-The workspace contains two folders by default, where:
+传送带，档案袋FFFF 0011- FFFF 0029
 
-- `src`: the folder to maintain sources
-- `lib`: the folder to maintain dependencies
+改变了传送带的方向，去除了周边档案袋的干扰，天线高度
 
-## Dependency Management
+### 数据：
 
-The `JAVA DEPENDENCIES` view allows you to manage your dependencies. More details can be found [here](https://github.com/microsoft/vscode-java-pack/blob/master/release-notes/v0.9.0.md#work-with-jar-files-directly).
+20-37-33.txt 为reader模式为1000 最大可靠性
+
+> 使用Super_V拟合效果更好
+
+21-12-48.txt 为reader模式为0 最大吞吐量
+
+>  使用Core_V拟合效果更好
+>
+> core_order_all.png 为使用Core_V排序，出现问题，详见下
+>
+> Problem_large.png 为使用Core_V排序，出现问题，详见下
+
+### 实验结论：
+
+改变传送带运行方向，极大提高了数据可靠性。
+
+reader的模式影响不大
+
+### 问题：
+
+1. 使用Core_V拟合，出现小区域错误Core _V区
+
+   解决方法：设置Core_V区大小限制![Problem_small](.\data\2021-06-17\Problem_small.png)
+
+2. 由于发动机和横杆干扰，第一个跳跃无法识别，无法去除干扰数据
+
+   解决方法：未定![Problem_large](.\data\2021-06-17\Problem_large.png)
+
+### 改进方案:
+
+1. 设置Core_V区大小限制
+
+   > 是否会出现V区实际就很小的情况
+
+2. 设置金属遮挡（锡纸）遮挡档案袋，使之只能在传送带上检测到。
+

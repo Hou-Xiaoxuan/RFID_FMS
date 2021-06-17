@@ -41,6 +41,8 @@ public class GetInfomationOfRssiAndPhase {
             // Get the default settings
             Settings settings = reader.queryDefaultSettings();
             // see in item-test MaxThroughput Mode
+            // 1000 最大可靠性
+            // 0 最大吞吐量
             settings.setRfMode(0);
             // write by LiuYin
             settings.getReport().setIncludePhaseAngle(true);

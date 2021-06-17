@@ -11,9 +11,25 @@ import numpy as np
 import math
 import matplotlib.pyplot as plt
 listen_epc = [
-    "FFFF 2007 0000 0000 0000 0000",
-    "FFFF 2006 0000 0000 0000 0000",
-    "FFFF 0005 0000 0000 0000 0000",
+    "FFFF 0011 0000 0000 0000 0000",
+    "FFFF 0012 0000 0000 0000 0000",
+    "FFFF 0013 0000 0000 0000 0000",
+    "FFFF 0014 0000 0000 0000 0000",
+    "FFFF 0015 0000 0000 0000 0000",
+    "FFFF 0016 0000 0000 0000 0000",
+    "FFFF 0017 0000 0000 0000 0000",
+    "FFFF 0018 0000 0000 0000 0000",
+    "FFFF 0019 0000 0000 0000 0000",
+    "FFFF 0020 0000 0000 0000 0000",
+    "FFFF 0021 0000 0000 0000 0000",
+    "FFFF 0022 0000 0000 0000 0000",
+    "FFFF 0023 0000 0000 0000 0000",
+    "FFFF 0024 0000 0000 0000 0000",
+    "FFFF 0025 0000 0000 0000 0000",
+    "FFFF 0026 0000 0000 0000 0000",
+    "FFFF 0027 0000 0000 0000 0000",
+    "FFFF 0028 0000 0000 0000 0000",
+    "FFFF 0029 0000 0000 0000 0000",
 ]  # 实验中监控的标签列表
 list_epc = []            # EPC列表
 list_time = []           # Time列表
@@ -45,7 +61,7 @@ def regression(time, phase):
     return phase_fit, -parameter[1] / (2 * parameter[0])
 
 
-with open("../data.txt") as lines:
+with open("./data.txt") as lines:
     """
     数据处理部分
     分割后的数据： Epc-Time-Rssi-Phase
@@ -91,9 +107,9 @@ with open("../data.txt") as lines:
     plt.title("order is " + str([list_epc[num][7:9] for num in index]))
     for i in range(0, len(list_epc)):
         plt.plot(list_time[i], upper_fit_phase[i],
-                 color=mcolors.TABLEAU_COLORS[colors[i]], marker='.', linestyle=':')
+                 color=mcolors.TABLEAU_COLORS[colors[i % 10]], marker='.', linestyle=':')
         plt.scatter(list_time[i], upper_phase[i],
-                    color=mcolors.TABLEAU_COLORS[colors[i]], marker='*')
+                    color=mcolors.TABLEAU_COLORS[colors[i % 10]], marker='*')
     # list.sort(list_epc)
     plt.legend([num[7:9] for num in list_epc], loc='best',
                bbox_to_anchor=(0.77, 0.2), fontsize='small')   # 设置图例

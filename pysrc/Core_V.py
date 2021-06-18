@@ -163,7 +163,7 @@ with open("./data.txt") as lines:
         plt.scatter(core_time[i], core_phase[i],
                     color=mcolors.TABLEAU_COLORS[colors[i % len_colors]], marker='*')
     # list.sort(list_epc)
-    plt.legend([num[7:9] for num in list_epc], loc=0,
-               bbox_to_anchor=(0.77, 0.2), fontsize='small')   # 设置图例
+    plt.legend([num[7:9] for num in list_epc],
+               loc='upper right', fontsize='small')   # 设置图例
     plt.savefig('./Super_V.png', dpi=600)
     plt.show()

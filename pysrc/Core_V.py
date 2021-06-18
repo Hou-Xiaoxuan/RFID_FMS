@@ -30,8 +30,8 @@ listen_epc = [
     "FFFF 0027 0000 0000 0000 0000",
     "FFFF 0028 0000 0000 0000 0000",
     "FFFF 0029 0000 0000 0000 0000",
-]  # 实验中监控的标签列表
-list_epc = []            # EPC列表
+]  # 实验中欲监控的标签列表
+list_epc = []            # 天线检测到的标签列表
 list_time = []           # Time列表
 list_rssi = []           # RSSI列表
 list_phase = []          # PHASE列表
@@ -39,28 +39,45 @@ first_time = 0           # 初始化一个开始时间，每次获得的开始�
 
 
 def process(old_time, tmp_data):
-    "粘合数据范围"
+    '''
+    寻找核心V区
+    '''
+    ct = 0        # 当前phass的去周期高度
+    jump = 4      # 判断phass值是否发生跳跃的阈值
+    ct_list = []  # phass的去周期高度列表
+    ct_loc = []   # 发生跳跃的位置，左闭右开
 
-    ct = 0
-    jump = 4
-    ct_list = []
-    ct_loc = []
-    # tmp_data = old_data.copy()
-    tmp_data.insert(0, -math.inf)
+    # 不修改源数据，否则在处理不稳定值时改变源数据
+    tmp_data = tmp_data.copy()
+    old_time = old_time.copy()
+
+    # 哨兵数据，防止数据不出现从小到大的跳跃
+    tmp_data.insert(len(tmp_data), math.inf)
+    old_time.insert(len(old_time), math.inf)
+    # 哨兵数据，防止第一个数据被舍弃，或不能处理
+    tmp_data.insert(0, math.inf)
     old_time.insert(0, 0)
+
+    # 处理在0和6附近不稳定的值，防止出现错误的跳跃
+    near_PI = 1.28  # 判断数据接近0或2PI的阈值
+    too_small = 3   # 判断数据量是否太小的阈值
     for i in range(1, len(tmp_data)):
-        if abs(tmp_data[i] - tmp_data[i - 1]) > jump:
+        if abs(tmp_data[i] - tmp_data[i - 1]) > jump:  # i-1到i处出现跳跃
+            # 检测从i到下一次跳跃的数据量
             r = i + 1
             while r < len(tmp_data) and abs(tmp_data[r] - tmp_data[r - 1]) < jump:
                 r += 1
-            if r - i <= 3 and tmp_data[i] < 1.28:
+
+            # 数据量小于等于too_small，并且值处在0附近，将数据上升
+            if r - i <= too_small and tmp_data[i] < near_PI:
                 for index in range(i, r):
                     tmp_data[index] += 2 * math.pi
-            elif r - i <= 3 and tmp_data[i] > 5:
+            # 数据量小于等于too_small，并且值处在2PI附近，将数据下降
+            elif r - i <= too_small and tmp_data[i] > math.pi - near_PI:
                 for index in range(i, r):
                     tmp_data[index] -= 2 * math.pi
-    tmp_data.insert(len(tmp_data), math.inf)
-    old_time.insert(len(old_time), math.inf)
+
+    # 根据跳跃分割数据
     for i in range(1, len(tmp_data)):
         if tmp_data[i] - tmp_data[i - 1] < -jump:
             ct += 1
@@ -71,9 +88,11 @@ def process(old_time, tmp_data):
             ct_list.append(ct)
             ct_loc.append(i)
 
+    # 寻找核心区
     l, r = 0, 0
     for i in range(1, len(ct_list)):
-        if (ct_list[i] < ct_list[i - 1]):
+        # 核心区为第一个向上跳跃以前，且数据量不能小于10
+        if (ct_list[i] < ct_list[i - 1] and ct_loc[i] - ct_loc[i - 1] >= 10):
             l = ct_loc[i - 1]
             r = ct_loc[i]
             break

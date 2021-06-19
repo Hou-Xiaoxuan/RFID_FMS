@@ -38,52 +38,52 @@ list_phase = []          # PHASE列表
 first_time = 0           # 初始化一个开始时间，每次获得的开始时间不同
 
 
-def process(old_time, tmp_data):
+def process(old_time, old_data):
     '''
     寻找核心V区
     '''
     ct = 0        # 当前phass的去周期高度
-    jump = 4      # 判断phass值是否发生跳跃的阈值
+    jump = 3      # 判断phass值是否发生跳跃的阈值
     ct_list = []  # phass的去周期高度列表
     ct_loc = []   # 发生跳跃的位置，左闭右开
 
     # 不修改源数据，否则在处理不稳定值时改变源数据
-    tmp_data = tmp_data.copy()
+    old_data = old_data.copy()
     old_time = old_time.copy()
 
     # 哨兵数据，防止数据不出现从小到大的跳跃
-    tmp_data.insert(len(tmp_data), math.inf)
+    old_data.insert(len(old_data), math.inf)
     old_time.insert(len(old_time), math.inf)
     # 哨兵数据，防止第一个数据被舍弃，或不能处理
-    tmp_data.insert(0, math.inf)
+    old_data.insert(0, math.inf)
     old_time.insert(0, 0)
 
     # 处理在0和6附近不稳定的值，防止出现错误的跳跃
     near_PI = 1.28  # 判断数据接近0或2PI的阈值
     too_small = 3   # 判断数据量是否太小的阈值
-    for i in range(1, len(tmp_data)):
-        if abs(tmp_data[i] - tmp_data[i - 1]) > jump:  # i-1到i处出现跳跃
+    for i in range(1, len(old_data)):
+        if abs(old_data[i] - old_data[i - 1]) > jump:  # i-1到i处出现跳跃
             # 检测从i到下一次跳跃的数据量
             r = i + 1
-            while r < len(tmp_data) and abs(tmp_data[r] - tmp_data[r - 1]) < jump:
+            while r < len(old_data) and abs(old_data[r] - old_data[r - 1]) < jump:
                 r += 1
 
             # 数据量小于等于too_small，并且值处在0附近，将数据上升
-            if r - i <= too_small and tmp_data[i] < near_PI:
+            if r - i <= too_small and old_data[i] < near_PI:
                 for index in range(i, r):
-                    tmp_data[index] += 2 * math.pi
+                    old_data[index] += 2 * math.pi
             # 数据量小于等于too_small，并且值处在2PI附近，将数据下降
-            elif r - i <= too_small and tmp_data[i] > math.pi - near_PI:
+            elif r - i <= too_small and old_data[i] > math.pi - near_PI:
                 for index in range(i, r):
-                    tmp_data[index] -= 2 * math.pi
+                    old_data[index] -= 2 * math.pi
 
     # 根据跳跃分割数据
-    for i in range(1, len(tmp_data)):
-        if tmp_data[i] - tmp_data[i - 1] < -jump:
+    for i in range(1, len(old_data)):
+        if old_data[i] - old_data[i - 1] < -jump:
             ct += 1
             ct_list.append(ct)
             ct_loc.append(i)
-        elif(tmp_data[i] - tmp_data[i - 1] > jump):
+        elif(old_data[i] - old_data[i - 1] > jump):
             ct -= 1
             ct_list.append(ct)
             ct_loc.append(i)
@@ -96,7 +96,7 @@ def process(old_time, tmp_data):
             l = ct_loc[i - 1]
             r = ct_loc[i]
             break
-    return old_time[l: r], tmp_data[l: r]
+    return old_time[l: r], old_data[l: r]
 
 
 def regression(time, phase):

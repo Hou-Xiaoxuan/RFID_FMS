@@ -21,6 +21,8 @@ import matplotlib.colors as mcolors
 import numpy as np
 import math
 import matplotlib.pyplot as plt
+from numpy.core.fromnumeric import mean
+from numpy.lib.function_base import average
 from sklearn.metrics import r2_score
 listen_epc = [
     # "FFFF 2006 0000 0000 0000 0000",
@@ -61,7 +63,7 @@ def regression(time, phase):
     return phase_fit, parameter
 
 
-def check_three(half_fit_data, orign_data):
+def check(half_fit_data, orign_data):
     r2 = r2_score(orign_data, half_fit_data)
     # 0.97
     return r2 < 0.97
@@ -91,7 +93,7 @@ def cal_boundry_l(l, mid, old_time, old_data):
                 l += 1
             else:
                 # 检验两次拟合的相似程度，如果相似程度低，则认为范围选取不当
-                if check_three(l_fit_phase,  fit_phase[0:half_index - l]) and check_three(r_fit_phase, fit_phase[half_index - l: mid - l]):
+                if check(l_fit_phase,  fit_phase[0:half_index - l]) and check(r_fit_phase, fit_phase[half_index - l: mid - l]):
                     l += 1
                 else:
                     flag = False
@@ -122,7 +124,7 @@ def cal_boundry_r(r, mid, old_time, old_data):
                 r -= 1
             else:
                 # 检验两次拟合的相似程度，如果相似程度低，则认为范围选取不当
-                if check_three(half_fit_phase_l,  fit_phase[0: half_index - mid]) and check_three(half_fit_phase_r,  fit_phase[half_index - mid:r]):
+                if check(half_fit_phase_l,  fit_phase[0: half_index - mid]) and check(half_fit_phase_r,  fit_phase[half_index - mid:r]):
                     r -= 1
                 else:
                     flag = False
@@ -134,7 +136,7 @@ def process(old_time, old_data):
     寻找核心V区
     '''
     ct = 0        # 当前phass的去周期高度
-    jump = 4      # 判断phass值是否发生跳跃的阈值
+
     ct_list = []  # phass的去周期高度列表
     ct_loc = []   # 发生跳跃的位置，左闭右开
 
@@ -151,7 +153,8 @@ def process(old_time, old_data):
 
     # 处理在0和6附近不稳定的值，防止出现错误的跳跃
     near_PI = 1.28  # 判断数据接近0或2PI的阈值
-    too_small = 3   # 判断数据量是否太小的阈值
+    too_small = 5   # 判断数据量是否太小的阈值
+    jump = 4      # 判断phass值是否发生跳跃的阈值
     for i in range(1, len(old_data)):
         if abs(old_data[i] - old_data[i - 1]) > jump:  # i-1到i处出现跳跃
             # 检测从i到下一次跳跃的数据量
@@ -180,7 +183,8 @@ def process(old_time, old_data):
             ct_loc.append(i)
 
     # 跳跃小V区，是否能适应V区边界在左右边界
-    small_V_size = 20
+    # small_V_size10
+    small_V_size = 15
     i = 1
     while i < len(ct_list) - 1:
         if ct_loc[i] - ct_loc[i - 1] < small_V_size:
@@ -201,9 +205,7 @@ def process(old_time, old_data):
     mid_orign = []
     max_windows_size = 15
     min_windows_size = 10
-    for i in range(len(old_data)):
-        if (i - max_windows_size < 0 or i + max_windows_size > len(old_data)):
-            continue
+    for i in range(max_windows_size, len(old_data) - max_windows_size):
 
         level = bisect.bisect_right(ct_loc, i) - 1
         windows_l = max(i - max_windows_size, ct_loc[level])
@@ -221,7 +223,6 @@ def process(old_time, old_data):
         if (parameter_l[0] > 0 and parameter_r[0] < 0):
             mid_orign.append(i)
 
-    # 再次筛选
     # 标兵数据
     mid_orign.append(math.inf)
     before = 0
@@ -233,18 +234,20 @@ def process(old_time, old_data):
                 # min_windows_size保持一致
                 l_tmp = cal_boundry_l(
                     ct_loc[level], mid_orign[i - 1] + min_windows_size, old_time, old_data)
-                if mid_orign[i - 1] - l_tmp > 7:
+                if mid_orign[i - 1] - l_tmp >= 5:
                     r_tmp = cal_boundry_r(
                         ct_loc[level + 1], l_tmp, old_time, old_data)
+                    l_tmp = cal_boundry_l(
+                        ct_loc[level], r_tmp, old_time, old_data)
                 else:
                     r_tmp = cal_boundry_r(
                         ct_loc[level + 1], mid_orign[before] + min_windows_size, old_time, old_data)
                     l_tmp = cal_boundry_l(
                         ct_loc[level], r_tmp, old_time, old_data)
+                    r_tmp = cal_boundry_r(
+                        ct_loc[level + 1], r_tmp, old_time, old_data)
 
-                l_tmp = cal_boundry_l(
-                    ct_loc[level], r_tmp, old_time, old_data)
-                if r_tmp - l_tmp >= 15:
+                if r_tmp - l_tmp >= small_V_size:
                     l.append(l_tmp)
                     r.append(r_tmp)
             before = i
@@ -256,8 +259,6 @@ def process(old_time, old_data):
         sym = -parameter[1] / (2 * parameter[0])   # 计算对称轴
         half_index = bisect.bisect(old_time, sym)  # 拟合后的曲线中轴位置
         if parameter[0] > 0 or r[i] < half_index or half_index < l[i]:
-            continue
-        if r[i] - l[i] < small_V_size:
             continue
         r2 = r2_score(old_data[l[i]:r[i]], fit_data)
         if (r2 > max_r2):
@@ -323,8 +324,8 @@ with open("./data.txt") as lines:
 
         plt.scatter(core_time[i], core_phase[i],
                     color=mcolors.TABLEAU_COLORS[colors[i % len_colors]], marker='*')
-    # list.sort(list_epc)
-    plt.legend([num[7:9] for num in list_epc],
+    plt.legend([str(list_epc[i][7:9]) + ' a:' + str(parameter[i][0]) for i in range(len(list_epc))],
                loc='upper right', fontsize='small')   # 设置图例
+    print(average(parameter, 0))
     plt.savefig('./Super_V.png', dpi=600)
     plt.show()

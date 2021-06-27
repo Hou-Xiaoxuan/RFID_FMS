@@ -28,28 +28,28 @@ from numpy.core.fromnumeric import mean
 from numpy.lib.function_base import average
 from sklearn.metrics import r2_score
 listen_epc = [
-    # "FFFF 2006 0000 0000 0000 0000",
-    # "FFFF 2007 0000 0000 0000 0000",
-    # "FFFF 0005 0000 0000 0000 0000",
-    "FFFF 0011 0000 0000 0000 0000",
-    "FFFF 0012 0000 0000 0000 0000",
-    "FFFF 0013 0000 0000 0000 0000",
-    "FFFF 0014 0000 0000 0000 0000",
-    "FFFF 0015 0000 0000 0000 0000",
-    "FFFF 0016 0000 0000 0000 0000",
-    "FFFF 0017 0000 0000 0000 0000",
-    "FFFF 0018 0000 0000 0000 0000",
-    "FFFF 0019 0000 0000 0000 0000",
-    "FFFF 0020 0000 0000 0000 0000",
-    "FFFF 0021 0000 0000 0000 0000",
-    "FFFF 0022 0000 0000 0000 0000",
-    "FFFF 0023 0000 0000 0000 0000",
-    "FFFF 0024 0000 0000 0000 0000",
-    "FFFF 0025 0000 0000 0000 0000",
-    "FFFF 0026 0000 0000 0000 0000",
-    "FFFF 0027 0000 0000 0000 0000",
-    "FFFF 0028 0000 0000 0000 0000",
-    "FFFF 0029 0000 0000 0000 0000",
+    "FFFF 2006 0000 0000 0000 0000",
+    "FFFF 2007 0000 0000 0000 0000",
+    "FFFF 0005 0000 0000 0000 0000",
+    # "FFFF 0011 0000 0000 0000 0000",
+    # "FFFF 0012 0000 0000 0000 0000",
+    # "FFFF 0013 0000 0000 0000 0000",
+    # "FFFF 0014 0000 0000 0000 0000",
+    # "FFFF 0015 0000 0000 0000 0000",
+    # "FFFF 0016 0000 0000 0000 0000",
+    # "FFFF 0017 0000 0000 0000 0000",
+    # "FFFF 0018 0000 0000 0000 0000",
+    # "FFFF 0019 0000 0000 0000 0000",
+    # "FFFF 0020 0000 0000 0000 0000",
+    # "FFFF 0021 0000 0000 0000 0000",
+    # "FFFF 0022 0000 0000 0000 0000",
+    # "FFFF 0023 0000 0000 0000 0000",
+    # "FFFF 0024 0000 0000 0000 0000",
+    # "FFFF 0025 0000 0000 0000 0000",
+    # "FFFF 0026 0000 0000 0000 0000",
+    # "FFFF 0027 0000 0000 0000 0000",
+    # "FFFF 0028 0000 0000 0000 0000",
+    # "FFFF 0029 0000 0000 0000 0000",
 ]  # 实验中欲监控的标签列表
 list_epc = []            # 天线检测到的标签列表
 list_time = []           # Time列表
@@ -131,8 +131,8 @@ def preprocess_data(time, data):
 
     '''
 
-    time = time.copy()
-    data = data.copy()
+    # time = time.copy()
+    # data = data.copy()
     # 哨兵数据，防止数据不出现从小到大的跳跃
     data.insert(len(data), math.inf)
     time.insert(len(time), math.inf)
@@ -164,7 +164,7 @@ def up_small_shake(data, too_small=5, jump=4, near_PI=1.28):
     NONE
 
     '''
-    data = data.copy()
+    # data = data.copy()
     for i in range(1, len(data)):
         if abs(data[i] - data[i - 1]) > jump:  # i-1到i处出现跳跃
             # 检测从i到下一次跳跃的数据量
@@ -241,8 +241,8 @@ def up_small_block(data, ct_loc, small_V_size=15, near_PI=1.28):
     可能出现问题，一个小V区和两侧的距离可能不是2PI,而且可能不是处于一个接近0的位置
 
     '''
-    data = data.copy()
-    ct_loc = ct_loc.copy()
+    # data = data.copy()
+    # ct_loc = ct_loc.copy()
     i = 1
     while i < len(ct_loc) - 1:
         if ct_loc[i] - ct_loc[i - 1] < small_V_size:

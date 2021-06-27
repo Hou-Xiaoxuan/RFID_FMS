@@ -1,22 +1,25 @@
-# !/usr/bin/env python
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python
+# -*- encoding: utf-8 -*-
 '''
-@Time    : 2021/06/27
-@Author  : xv_rong
-@File    : Core_V.py
-@Function: Core_V_V2拟合，排序，分模块
-           1. 查找核心V区峰值
-           2. 两边向中间的逼近
-           3. 上升小核心V
-           待用
-           1. 特判分割点在左右两端
-           2. 根据历史a值判断拟合是否成功
-           3. 找不到时使用其他方法
-           4. 多个结果返回一个更合理的结果
+@File         : Core_V_V2.py
+@Date         : 2021/06/27 09:06:18
+@Author       : xv_rong
+@version      : 1.0
+@Function     : Core_V_V2拟合，排序，分模块
+                1. 查找核心V区峰值
+                2. 两边向中间的逼近
+                3. 上升小核心V
+@TODO         : 0. 改进上升核心V区逻辑
+                1. 改善选择核心V区的逻辑
+                2. 根据历史a值判断拟合是否成功
+                3. 找不到时使用其他方法
+                4. 特判分割点在左右两端
+                5. 多个结果返回一个更合理的结果
+                6. 将标签列表，读取数据和画图逻辑分割出去
+'''
 
-'''
 import bisect
-from re import L
+from jedi.inference.context import FunctionContext
 import matplotlib.colors as mcolors
 import numpy as np
 import math
@@ -55,41 +58,113 @@ list_phase = []          # PHASE列表
 first_time = 0           # 初始化一个开始时间，每次获得的开始时间不同
 
 
-def regression(time, phase):
-    "多项式回归， 返回拟合后的数据"
-    parameter = np.polyfit(time, phase, 2)
+def regression(time, data):
+    '''
+    @Description
+    -------
+    处理在0和2PI附近不稳定的值，防止出现错误的跳跃
+
+    @Parameters
+    -------
+    time       :  时间
+    data       :  phase
+
+    @Returns
+    -------
+    phase_fit  :  拟合后的phase
+    parameter  ： 拟合参数
+
+    @Warns
+    -------
+    NONE
+
+    '''
+    parameter = np.polyfit(time, data, 2)
     func = np.poly1d(parameter)
     phase_fit = func(time)
     return phase_fit, parameter
 
 
-def check(half_fit_data, orign_data):
-    r2 = r2_score(orign_data, half_fit_data)
-    return r2 >= 0.8
+def check(fit_data, orign_data):
+    '''
+    @Description
+    ---------
+    检查拟合的phase和原始phase的契合程度
+
+    @Parameters
+    -------
+    fit_data    :  拟合值
+    orign_data  :  原始值
+
+    @Returns
+    -------
+    拟合度高 True 拟合度低 False
+
+    @Warns
+    -------
+    NONE
+
+    '''
+    r2 = r2_score(orign_data, fit_data)
+    return r2 >= 0.8  # 程序运行的关键参数
 
 
-def preprocess_data(data, time):
+def preprocess_data(time, data):
+    '''
+    @Description
+    ---------
+    预处理数据，主要是两端插入标兵数据
 
+    @Parameters
+    -------
+    time      :  时间
+    data      :  phase
+
+    @Returns
+    -------
+    time      :  处理后时间
+    data      :  处理后phase
+
+    @Warns
+    -------
+    NONE
+
+    '''
+
+    time = time.copy()
+    data = data.copy()
     # 哨兵数据，防止数据不出现从小到大的跳跃
     data.insert(len(data), math.inf)
     time.insert(len(time), math.inf)
     # 哨兵数据，防止第一个数据被舍弃，或不能处理
     data.insert(0, math.inf)
     time.insert(0, 0)
-    return data, time
+    return time, data
 
 
-def process_small_jump_near_PI(data, too_small=5, jump=4, near_PI=1.28):
+def up_small_shake(data, too_small=5, jump=4, near_PI=1.28):
     '''
-        fuction: 处理在0和2PI附近不稳定的值，防止出现错误的跳跃
-        parameter:
-            data      需要处理的数据
-            too_small 数据长度小于这个值，就认为是一个不稳定的跳跃
-            jump      数据发生跳跃的临界值
-            near_PI   需要处理的数据大小应该在[0,near_PI) 和 (2PI - near_PI, 2PI]之间
-        return value: 处理之后的data
-    '''
+    @Description
+    ---------
+    将0和2PI附近发生跳跃的值和周围的翼合并
 
+    @Parameters
+    -------
+    data      :  phase
+    too_small :  一个震动数据量的临界值
+    jump      :  发生跳跃的临界值
+    near_PI   :  判断距离两个边界距离的的临界值
+
+    @Returns
+    -------
+    data      :  处理后的数据
+
+    @Warns
+    -------
+    NONE
+
+    '''
+    data = data.copy()
     for i in range(1, len(data)):
         if abs(data[i] - data[i - 1]) > jump:  # i-1到i处出现跳跃
             # 检测从i到下一次跳跃的数据量
@@ -108,86 +183,116 @@ def process_small_jump_near_PI(data, too_small=5, jump=4, near_PI=1.28):
     return data
 
 
-def splite_data(data, jump=4):
+def splite_data(data, jump=2):
     '''
-        fuction: 根据跳跃分割数据
-        parameter:
-            data  需要处理的数据
-            jump  数据发生跳跃的临界值
-        return value:
-            ct_list 去周期的相对高度列表
-            ct_loc  发生跳跃的位置列表，左闭右开
+    @Description
+    ---------
+    根据jump值分割数据
+
+    @Parameters
+    -------
+    data       :  phase
+    jump       :  发生跳跃的临界值
+
+    @Returns
+    -------
+    ct_loc     :  发生跳跃的位置
+
+    @Warns
+    -------
+    NONE
+
     '''
-    ct = 0        # 当前phass的去周期高度
-    ct_list = []  # phass的去周期高度列表
     ct_loc = []   # 发生跳跃的位置，左闭右开
 
     for i in range(1, len(data)):
         if data[i] - data[i - 1] < -jump:
-            ct += 1
-            ct_list.append(ct)
+            # ct += 1
+            # ct_list.append(ct)
             ct_loc.append(i)
         elif(data[i] - data[i - 1] > jump):
-            ct -= 1
-            ct_list.append(ct)
+            # ct -= 1
+            # ct_list.append(ct)
             ct_loc.append(i)
-    return ct_list, ct_loc
+    return ct_loc
 
 
-def up_small_data(data, ct_list, ct_loc, small_V_size=15, near_PI=1.28):
+def up_small_block(data, ct_loc, small_V_size=15, near_PI=1.28):
     '''
-        fuction:  将所有数据量小于small_V_size的数据片段，上升2PI
-                  如果V区很小，这样处理可以将一个V区和两侧拼接
-        parameter:
-            data     需要处理的数据
-            ct_loc   发生跳跃的位置
-            ct_list  去周期的相对高度列表
-            jump     数据发生跳跃的临界值
-        return value:
-            ct_list  去周期的相对高度列表
-            ct_loc   发生跳跃的位置列表
+    @Description
+    ---------
+    将数据量很小的块，上升2PI
+
+    @Parameters
+    -------
+    data          :  phase
+    ct_loc        :  发生跳跃的位置
+    small_V_size  :  程序默认能辨认的最小V区大小，数据量小于这个大小的块，需要上升
+    near_PI       :  判断距离两个边界距离的的临界值
+
+    @Returns
+    -------
+    data          :  phase
+    ct_loc        :  发生跳跃的位置，将小区域和两边合并
+
+    @Warns
+    -------
+    需要改进
+    可能出现问题，一个小V区和两侧的距离可能不是2PI,而且可能不是处于一个接近0的位置
+
     '''
+    data = data.copy()
+    ct_loc = ct_loc.copy()
     i = 1
     while i < len(ct_loc) - 1:
         if ct_loc[i] - ct_loc[i - 1] < small_V_size:
-            # 加上两端的限制
+            # 两端的限制
             if data[ct_loc[i - 1] - 1] > 2 * math.pi - near_PI and data[ct_loc[i]] > 2 * math.pi - near_PI:
                 for index in range(ct_loc[i - 1], ct_loc[i]):
                     data[index] += 2 * math.pi
                 ct_loc.pop(i - 1)
                 ct_loc.pop(i - 1)
-                ct_list.pop(i - 1)
-                ct_list.pop(i - 1)
             else:
                 i = i + 1
         else:
             i = i + 1
-    return data, ct_list, ct_loc
+    return data, ct_loc
 
 
-def find_mid_orign(data, window_size=7):
+def find_peek_V(data, ct_loc, window_size=7):
     '''
-        fuction:  寻找预备分割点
-        parameter:
-            data     需要处理的数据
-            ct_loc   发生跳跃的位置
-        return value:
-            mid_orign 预分割点,最后插入一个标兵数据
+    @Description
+    ---------
+    寻找所有可能的V区顶点，可能寻找到错误的
+
+    @Parameters
+    -------
+    data       :  phase
+
+    @Returns
+    -------
+    peek       :  V区顶点
+
+    @Warns
+    -------
+    可能寻找到错误的
+
     '''
-    mid_orign = []
-    stack = []
-    lnum = [0 for __ in range(len(data))]
-    rnum = [0 for __ in range(len(data))]
-    __, ct_loc = splite_data(data, jump=2)
+    peek = []  # 可能的V区顶点列表
+    stack = []  # 单调栈
+    lnum = [0 for __ in range(len(data))]  # 一个数据左侧连续小于其的数据数量
+    rnum = [0 for __ in range(len(data))]  # 一个数据右侧连续小于其的数据数量
+    # ct_loc = splite_data(data, jump=2)   # 分割数据，分割条件更苛刻
+    # 单调栈，一个 >= ,另一个 > 避免双峰
     for i in range(0, len(data)):
         if i in ct_loc:
             while stack:
                 j = stack.pop()
-                lnum[j] = i - j - 1
-        # 没有等于
+                rnum[j] = i - j - 1
+        # >
         while stack and data[i] > data[stack[-1]]:
             j = stack.pop()
-            lnum[j] = i - j - 1
+            rnum[j] = i - j - 1
         stack.append(i)
 
     stack.clear()
@@ -195,60 +300,108 @@ def find_mid_orign(data, window_size=7):
         if i + 1 in ct_loc:
             while stack:
                 j = stack.pop()
-                rnum[j] = j - i - 1
-        # 等于，避免双峰
+                lnum[j] = j - i - 1
+        # >=
         while stack and data[i] >= data[stack[-1]]:
             j = stack.pop()
-            rnum[j] = j - i - 1
+            lnum[j] = j - i - 1
         stack.append(i)
+
     for i in range(len(data)):
         if (lnum[i] >= window_size and rnum[i] >= window_size):
-            mid_orign.append(i)
-    return mid_orign
+            peek.append(i)
+    return peek
 
 
-def find_boundary(data, time, ct_loc, mid_orign, small_V_size=15):
+def find_boundary(time, data, ct_loc, peek, small_V_size=15):
     '''
-        寻找边界
+    @Description
+    ---------
+    寻找边界
+
+    @Parameters
+    -------
+    data          :  phase
+    time          :  时间
+    ct_loc        :  发生跳跃的位置
+    peek          :  V区顶点
+    small_V_size  :  程序默认能辨认的最小V区大小，数据量小于这个大小的块，则认为不是一个正确拟合
+
+    @Returns
+    -------
+    l_list        :  V区的左边界列表
+    r_list        :  V区的右边界列表
+
+    @Warns
+    -------
+    左右边界是一个列表，后续需要选择的一个
+
     '''
     window_size = small_V_size // 2
-    l, r = [], []
-    for i in range(len(mid_orign)):
-        level = bisect.bisect_right(ct_loc, mid_orign[i]) - 1
-        # mid_orign[i - 1] 为v区顶点可以确定的右边界
+    l_list, r_list = [], []
+    for i in range(len(peek)):
+        level = bisect.bisect_right(ct_loc, peek[i]) - 1
+        # peek[i] + window_size为v区顶点可以确定的右边界
         l_tmp = cal_boundry_l(
-            ct_loc[level], mid_orign[i] + window_size, time, data)
-        if mid_orign[i] - l_tmp >= 5:
+            ct_loc[level], peek[i] + window_size, time, data)
+        if peek[i] - l_tmp >= 5:
             # 根据找到的左边界，压缩右边的边界
-
             r_tmp = cal_boundry_r(
                 ct_loc[level + 1], l_tmp, time, data)
+            # 重新压缩左边界
             l_tmp = cal_boundry_l(
                 ct_loc[level], r_tmp, time, data)
+        # 若左边界效果不好
         else:
+            # peek[i] + window_size为v区顶点可以确定的左边界
             r_tmp = cal_boundry_r(
-                ct_loc[level + 1], mid_orign[i] - window_size, time, data)
+                ct_loc[level + 1], peek[i] - window_size, time, data)
+            # 根据找到的右边界，压缩左边的边界
             l_tmp = cal_boundry_l(
                 ct_loc[level], r_tmp, time, data)
+            # 重新压缩右边界
             r_tmp = cal_boundry_r(
                 ct_loc[level + 1], l_tmp, time, data)
+        # 验证数据量符合要求
         if r_tmp - l_tmp >= small_V_size:
-            l.append(l_tmp)
-            r.append(r_tmp)
-    return l, r
+            l_list.append(l_tmp)
+            r_list.append(r_tmp)
+    return l_list, r_list
 
 
-def cal_boundry_l(l, mid, time, data):
+def cal_boundry_l(l, r, time, data):
+    '''
+    @Description
+    ---------
+    固定右边界，寻找左边界
+
+    @Parameters
+    -------
+    l          :  左边界起始点
+    r          :  固定右边界
+    time       :  时间
+    data       :  phase
+
+    @Returns
+    -------
+    l          :  确定的左边界
+
+    @Warns
+    -------
+    l需要在核心v区外或者边界处
+    r需要在核心v区内偏右侧
+
+    '''
     flag = True
-    while flag and mid - l >= 3:
-        # 对[l,mid)的数据进行二次拟合
+    while flag and r - l >= 3:
+
         [fit_phase, parameter] = regression(
-            time[l:mid], data[l:mid])
+            time[l:r], data[l:r])  # 对[l,r)的数据进行二次拟合
         sym = -parameter[1] / (2 * parameter[0])   # 计算对称轴
         sym_index = bisect.bisect(time, sym)  # 拟合后的曲线中轴位置
-        half_index = (l + mid) // 2
+        half_index = (l + r) // 2
         # 若开口向上，或者中轴和左边界距离过近，无法进行下一次拟合，或者中轴超过右边界则认为范围选取不当
-        if parameter[0] > 0 or sym_index - l < 3 or mid - sym_index < 3:
+        if parameter[0] > 0 or sym_index - l < 3 or r - sym_index < 3:
             l += 1
         else:
             # 对[l, half_index)位置进行拟合
@@ -256,12 +409,12 @@ def cal_boundry_l(l, mid, time, data):
                 time[l:half_index], data[l:half_index])
             # 对[half_index, r)位置进行拟合
             [r_fit_phase, r_parameter] = regression(
-                time[half_index:mid], data[half_index:mid])
+                time[half_index:r], data[half_index:r])
             # 若开口向上，则认为认为范围选取不当
             if l_parameter[0] > 0 or r_parameter[0] > 0:
                 l += 1
             else:
-                # 检验两次拟合的相似程度，如果相似程度低，则认为范围选取不当
+                # 检验两次拟合左侧的相似程度，如果相似程度低，则认为范围选取不当
                 if check(l_fit_phase, fit_phase[0:half_index - l]):
                     flag = False
                 else:
@@ -269,22 +422,44 @@ def cal_boundry_l(l, mid, time, data):
     return l
 
 
-def cal_boundry_r(r, mid, time, data):
+def cal_boundry_r(r, l, time, data):
+    '''
+    @Description
+    ---------
+    固定左边界，寻找右边界
+
+    @Parameters
+    -------
+    l          :  固定左边界
+    r          :  右边界起始点
+    time       :  时间
+    data       :  phase
+
+    @Returns
+    -------
+    r          :  确定的左边界
+
+    @Warns
+    -------
+    l需要在核心v区内偏左侧
+    r需要在核心v区外或者边界处
+
+    '''
     flag = True
-    while flag and r - mid >= 3:
-        # 对[mid,r)的数据进行二次拟合
+    while flag and r - l >= 3:
+        # 对[l,r)的数据进行二次拟合
         [fit_phase, parameter] = regression(
-            time[mid:r], data[mid:r])
+            time[l:r], data[l:r])
         sym = -parameter[1] / (2 * parameter[0])   # 计算对称轴
         sym_index = bisect.bisect(time, sym)  # 拟合后的曲线中轴位置
-        half_index = (r + mid) // 2
+        half_index = (r + l) // 2
         # 若开口向上，或者中轴和左边界距离过近，无法进行下一次拟合，或者中轴超过右边界则认为范围选取不当
-        if parameter[0] > 0 or r - sym_index < 3 or sym_index - mid < 3:
+        if parameter[0] > 0 or r - sym_index < 3 or sym_index - l < 3:
             r -= 1
         else:
-            # 对[mid, half_index)位置进行拟合
+            # 对[l, half_index)位置进行拟合
             [half_fit_phase_l, parameter_l] = regression(
-                time[mid:half_index], data[mid:half_index])
+                time[l:half_index], data[l:half_index])
             # 对[half_index, r)位置进行拟合
             [half_fit_phase_r, parameter_r] = regression(
                 time[half_index:r], data[half_index:r])
@@ -292,65 +467,103 @@ def cal_boundry_r(r, mid, time, data):
             if parameter_l[0] > 0 or parameter_r[0] > 0:
                 r -= 1
             else:
-                # 检验两次拟合的相似程度，如果相似程度低，则认为范围选取不当
-                if check(half_fit_phase_r, fit_phase[half_index - mid:r - mid]):
+                # 检验拟合右侧的相似程度，如果相似程度低，则认为范围选取不当
+                if check(half_fit_phase_r, fit_phase[half_index - l:r - l]):
                     flag = False
                 else:
                     r -= 1
     return r
 
 
-def select_result(time, data, l, r):
+def select_result(time, data, l_list, r_list):
     '''
-        从获得的系统中选择一个
+    @Description
+    ---------
+    从获得的v区边界中选择一个
+
+    @Parameters
+    -------
+    time            :  时间
+    data            :  数据
+    l_list          :  左边界列表
+    r_list          :  右边界列表
+
+    @Returns
+    -------
+    l               :  左边界
+    r               :  右边界
+
+    @Warns
+    -------
+    选择一个r2最大的，不一定能选择出对的
+
     '''
+    #
     max_r2, best_index = -math.inf, -1
-    for i in range(len(l)):
+    for i in range(len(l_list)):
         [fit_data, parameter] = regression(
-            time[l[i]:r[i]], data[l[i]:r[i]])
+            time[l_list[i]:r_list[i]], data[l_list[i]:r_list[i]])
         sym = -parameter[1] / (2 * parameter[0])   # 计算对称轴
-        half_index = bisect.bisect(time, sym)  # 拟合后的曲线中轴位置
-        if parameter[0] > 0 or r[i] < half_index or half_index < l[i]:
+        sym_index = bisect.bisect(time, sym)  # 拟合后的曲线中轴位置
+        # 需要开口向下，中轴在边界之间
+        if parameter[0] > 0 or r_list[i] < sym_index or sym_index <= l_list[i]:
             continue
-        r2 = r2_score(data[l[i]:r[i]], fit_data)
+        r2 = r2_score(data[l_list[i]:r_list[i]], fit_data)
         if (r2 > max_r2):
             max_r2 = r2
             best_index = i
     if best_index == -1:
         print("error, best index = %d" % best_index)
-    return best_index
+    return l_list[best_index], r_list[best_index]
 
 
 def process(time, data):
     '''
+    @Description
+    ---------
     寻找核心V区
+
+    @Parameters
+    -------
+    time        :  时间
+    data        :  phass
+
+    @Returns
+    -------
+    time        :  核心V区的时间
+    phase       :  核心V区的phase
+
+    @Warns
+    -------
+    NONE
+
     '''
 
     # 处理在0和6附近不稳定的值，防止出现错误的跳跃
     near_PI = 1.28  # 判断数据接近0或2PI的阈值
     too_small = 5   # 判断数据量是否太小的阈值
-    jump = 2        # 判断phass值是否发生跳跃的阈值
+    jump = 2        # 判断phase是否发生跳跃的阈值
     small_V_size = 15  # 能处理的最小core_V区大小
-    window_size = small_V_size // 2
+    window_size = small_V_size // 2  # 根据small_V_size确定的一般V区大小
     # 预处理
-    data, time = preprocess_data(data, time)
-
-    data = process_small_jump_near_PI(
+    time, data = preprocess_data(time, data)
+    # 处理振动数据
+    data = up_small_shake(
         data, too_small, jump, near_PI)
-
-    ct_list, ct_loc = splite_data(data, jump)
-
-    data, ct_list, ct_loc = up_small_data(
-        data, ct_list, ct_loc, small_V_size, near_PI)
-
-    mid_orign = find_mid_orign(
-        data, window_size)
-
-    l, r = find_boundary(data, time, ct_loc, mid_orign,
-                         small_V_size)
-
-    best_index = select_result(time, data, l, r)
-    return time[l[best_index]: r[best_index]], data[l[best_index]: r[best_index]]
+    # 分割数据
+    ct_loc = splite_data(data, jump)
+    # 处理小块数据
+    data, ct_loc = up_small_block(
+        data, ct_loc, small_V_size, near_PI)
+    # 寻找V区顶点
+    peek = find_peek_V(
+        data, ct_loc, window_size)
+    # 寻找左右边界
+    l_list, r_list = find_boundary(time, data, ct_loc, peek,
+                                   small_V_size)
+    # 选择最佳边界
+    l, r = select_result(time, data, l_list, r_list)
+    return time[l: r], data[l: r]
 
 
 with open("./data.txt") as lines:
@@ -393,9 +606,11 @@ with open("./data.txt") as lines:
         pos[i] = -parameter[i][1] / (2 * parameter[i][0])
     colors = list(mcolors.TABLEAU_COLORS.keys())  # 颜色变化
     len_colors = len(mcolors.TABLEAU_COLORS)  # 颜色长度
+    # 排序
     sorted_pos = sorted(enumerate(pos), key=lambda x: x[1])
     index = [i[0] for i in sorted_pos]
     pos = [i[1] for i in sorted_pos]
+    # 画图
     plt.figure("order")
     print("order is " + str([list_epc[num][7:9] for num in index]))
     plt.title("order is " + str([list_epc[num][7:9] for num in index]))

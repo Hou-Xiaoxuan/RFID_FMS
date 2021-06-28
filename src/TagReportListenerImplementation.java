@@ -33,7 +33,7 @@ public class TagReportListenerImplementation implements TagReportListener {
             }
 
         } catch (Exception e) {
-            // TODO: handle exception
+            // todo: handle exception
             System.out.println("TCP Exception");
             // e.printStackTrace();
         }

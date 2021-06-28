@@ -1,5 +1,5 @@
 长条形标签叠放实验， 拟合出正确顺序
-peed   : 2
+speed   : 2
 epc_type: 2
 epc     : 000f - 0015
 order   : 000f - 0015

@@ -28,28 +28,27 @@ from numpy.core.fromnumeric import mean
 from numpy.lib.function_base import average
 from sklearn.metrics import r2_score
 listen_epc = [
-    "FFFF 2006 0000 0000 0000 0000",
-    "FFFF 2007 0000 0000 0000 0000",
-    "FFFF 0005 0000 0000 0000 0000",
-    # "FFFF 0011 0000 0000 0000 0000",
-    # "FFFF 0012 0000 0000 0000 0000",
-    # "FFFF 0013 0000 0000 0000 0000",
-    # "FFFF 0014 0000 0000 0000 0000",
-    # "FFFF 0015 0000 0000 0000 0000",
-    # "FFFF 0016 0000 0000 0000 0000",
-    # "FFFF 0017 0000 0000 0000 0000",
-    # "FFFF 0018 0000 0000 0000 0000",
-    # "FFFF 0019 0000 0000 0000 0000",
-    # "FFFF 0020 0000 0000 0000 0000",
-    # "FFFF 0021 0000 0000 0000 0000",
-    # "FFFF 0022 0000 0000 0000 0000",
-    # "FFFF 0023 0000 0000 0000 0000",
-    # "FFFF 0024 0000 0000 0000 0000",
-    # "FFFF 0025 0000 0000 0000 0000",
-    # "FFFF 0026 0000 0000 0000 0000",
-    # "FFFF 0027 0000 0000 0000 0000",
-    # "FFFF 0028 0000 0000 0000 0000",
-    # "FFFF 0029 0000 0000 0000 0000",
+    "0000 000F 2000 0000 0000 0000",
+    "0000 0010 2000 0000 0000 0000",
+    "0000 0011 2000 0000 0000 0000",
+    "0000 0012 2000 0000 0000 0000",
+    "0000 0013 2000 0000 0000 0000",
+    "0000 0014 2000 0000 0000 0000",
+    "0000 0015 2000 0000 0000 0000",
+    "0000 0001 0000 0000 0000 0000",
+    "0000 0002 0000 0000 0000 0000",
+    "0000 0003 0000 0000 0000 0000",
+    "0000 0004 0000 0000 0000 0000",
+    "0000 0005 0000 0000 0000 0000",
+    "0000 0006 0000 0000 0000 0000",
+    "0000 0007 0000 0000 0000 0000",
+    "0000 0008 0000 0000 0000 0000",
+    "0000 0009 0000 0000 0000 0000",
+    "0000 000A 0000 0000 0000 0000",
+    "0000 000B 0000 0000 0000 0000",
+    "0000 000C 0000 0000 0000 0000",
+    "0000 000D 0000 0000 0000 0000",
+    "0000 000E 0000 0000 0000 0000",
 ]  # 实验中欲监控的标签列表
 list_epc = []            # 天线检测到的标签列表
 list_time = []           # Time列表
@@ -259,7 +258,7 @@ def up_small_block(data, ct_loc, small_V_size=15, near_PI=1.28):
     return data, ct_loc
 
 
-def find_peek_V(data, ct_loc, window_size=7):
+def find_peek_V(time, data, ct_loc, window_size=7):
     '''
     @Description
     ---------
@@ -288,11 +287,11 @@ def find_peek_V(data, ct_loc, window_size=7):
         if i in ct_loc:
             while stack:
                 j = stack.pop()
-                rnum[j] = i - j - 1
+                lnum[j] = i - j - 1
         # >
         while stack and data[i] > data[stack[-1]]:
             j = stack.pop()
-            rnum[j] = i - j - 1
+            lnum[j] = i - j - 1
         stack.append(i)
 
     stack.clear()
@@ -300,16 +299,21 @@ def find_peek_V(data, ct_loc, window_size=7):
         if i + 1 in ct_loc:
             while stack:
                 j = stack.pop()
-                lnum[j] = j - i - 1
+                rnum[j] = j - i - 1
         # >=
         while stack and data[i] >= data[stack[-1]]:
             j = stack.pop()
-            lnum[j] = j - i - 1
+            rnum[j] = j - i - 1
         stack.append(i)
 
     for i in range(len(data)):
         if (lnum[i] >= window_size and rnum[i] >= window_size):
-            peek.append(i)
+            parameterl = np.polyfit(
+                time[i - window_size:i + 1], data[i - window_size: i + 1], 1)
+            parameterr = np.polyfit(
+                time[i: i + window_size + 1], data[i: i + window_size + 1], 1)
+            if parameterl[0] > 0 and parameterr[0] < 0:
+                peek.append(i)
     return peek
 
 
@@ -343,7 +347,7 @@ def find_boundary(time, data, ct_loc, peek, small_V_size=15):
         level = bisect.bisect_right(ct_loc, peek[i]) - 1
         # peek[i] + window_size为v区顶点可以确定的右边界
         l_tmp = cal_boundry_l(
-            ct_loc[level], peek[i] + window_size, time, data)
+            ct_loc[level], min(peek[i] + window_size, len(data) - 1), time, data)
         if peek[i] - l_tmp >= 5:
             # 根据找到的左边界，压缩右边的边界
             r_tmp = cal_boundry_r(
@@ -355,7 +359,7 @@ def find_boundary(time, data, ct_loc, peek, small_V_size=15):
         else:
             # peek[i] + window_size为v区顶点可以确定的左边界
             r_tmp = cal_boundry_r(
-                ct_loc[level + 1], peek[i] - window_size, time, data)
+                ct_loc[level + 1], max(1, peek[i] - window_size), time, data)
             # 根据找到的右边界，压缩左边的边界
             l_tmp = cal_boundry_l(
                 ct_loc[level], r_tmp, time, data)
@@ -414,8 +418,9 @@ def cal_boundry_l(l, r, time, data):
             if l_parameter[0] > 0 or r_parameter[0] > 0:
                 l += 1
             else:
+                # 这个逻辑可能会过严
                 # 检验两次拟合左侧的相似程度，如果相似程度低，则认为范围选取不当
-                if check(l_fit_phase, fit_phase[0:half_index - l]):
+                if check(l_fit_phase, fit_phase[0:half_index - l]) and check(r_fit_phase, fit_phase[half_index - l: r - l]):
                     flag = False
                 else:
                     l += 1
@@ -458,17 +463,18 @@ def cal_boundry_r(r, l, time, data):
             r -= 1
         else:
             # 对[l, half_index)位置进行拟合
-            [half_fit_phase_l, parameter_l] = regression(
+            [l_fit_phase, parameter_l] = regression(
                 time[l:half_index], data[l:half_index])
             # 对[half_index, r)位置进行拟合
-            [half_fit_phase_r, parameter_r] = regression(
+            [r_fit_phase, parameter_r] = regression(
                 time[half_index:r], data[half_index:r])
             # 若开口向上，则认为认为范围选取不当
             if parameter_l[0] > 0 or parameter_r[0] > 0:
                 r -= 1
             else:
                 # 检验拟合右侧的相似程度，如果相似程度低，则认为范围选取不当
-                if check(half_fit_phase_r, fit_phase[half_index - l:r - l]):
+                # 这个逻辑可能会过严
+                if check(r_fit_phase, fit_phase[half_index - l:r - l]) and check(l_fit_phase, fit_phase[0: half_index - l]):
                     flag = False
                 else:
                     r -= 1
@@ -513,7 +519,7 @@ def select_result(time, data, l_list, r_list):
             max_r2 = r2
             best_index = i
     if best_index == -1:
-        print("error, best index = %d" % best_index)
+        return -1, -1
     return l_list[best_index], r_list[best_index]
 
 
@@ -530,8 +536,8 @@ def process(time, data):
 
     @Returns
     -------
-    time        :  核心V区的时间
-    phase       :  核心V区的phase
+    l           :  左边界
+    r           :  右边界
 
     @Warns
     -------
@@ -542,7 +548,7 @@ def process(time, data):
     # 处理在0和6附近不稳定的值，防止出现错误的跳跃
     near_PI = 1.28  # 判断数据接近0或2PI的阈值
     too_small = 5   # 判断数据量是否太小的阈值
-    jump = 2        # 判断phase是否发生跳跃的阈值
+    jump = math.pi        # 判断phase是否发生跳跃的阈值
     small_V_size = 15  # 能处理的最小core_V区大小
     window_size = small_V_size // 2  # 根据small_V_size确定的一般V区大小
     # 预处理
@@ -557,13 +563,13 @@ def process(time, data):
         data, ct_loc, small_V_size, near_PI)
     # 寻找V区顶点
     peek = find_peek_V(
-        data, ct_loc, window_size)
+        time, data, ct_loc, window_size)
     # 寻找左右边界
     l_list, r_list = find_boundary(time, data, ct_loc, peek,
                                    small_V_size)
     # 选择最佳边界
     l, r = select_result(time, data, l_list, r_list)
-    return time[l: r], data[l: r]
+    return l, r
 
 
 with open("./data.txt") as lines:
@@ -595,27 +601,38 @@ with open("./data.txt") as lines:
             list_phase[tag_index].append(float(tag_info[3]))
 
     """粘合数据"""
-    pos = [0 for i in range(0, len(list_epc))]
-    parameter = [0 for i in range(0, len(list_epc))]
-    core_phase = [[] for i in range(0, len(list_epc))]
-    core_time = [[] for i in range(0, len(list_epc))]
-    fit_phase = [[] for i in range(0, len(list_epc))]
+    ori_pos = []
+    parameter = []
+    core_phase = []
+    core_time = []
+    fit_phase = []
+    fit_epc = []
+    unfit_epc = []
     for i in range(0, len(list_epc)):
-        [core_time[i], core_phase[i]] = process(list_time[i], list_phase[i])
-        [fit_phase[i], parameter[i]] = regression(core_time[i], core_phase[i])
-        pos[i] = -parameter[i][1] / (2 * parameter[i][0])
+        l, r = process(list_time[i], list_phase[i])
+        if l != -1 and r != -1:
+            fit_epc.append(list_epc[i])
+            core_time.append(list_time[i][l:r])
+            core_phase.append(list_phase[i][l:r])
+            [tmp_fit_phase, tmp_parameter] = regression(
+                core_time[-1], core_phase[-1])
+            fit_phase.append(tmp_fit_phase)
+            parameter.append(tmp_parameter)
+            ori_pos.append(-parameter[-1][1] / (2 * parameter[-1][0]))
+        else:
+            unfit_epc.append(list_epc[i])
     colors = list(mcolors.TABLEAU_COLORS.keys())  # 颜色变化
     len_colors = len(mcolors.TABLEAU_COLORS)  # 颜色长度
     # 排序
-    sorted_pos = sorted(enumerate(pos), key=lambda x: x[1])
+    sorted_pos = sorted(enumerate(ori_pos), key=lambda x: x[1])
     index = [i[0] for i in sorted_pos]
     pos = [i[1] for i in sorted_pos]
     # 画图
     plt.figure("order")
-    print("order is " + str([list_epc[num][7:9] for num in index]))
-    plt.title("order is " + str([list_epc[num][7:9] for num in index]))
+    plt.title("order is " + str([fit_epc[num][7:9] for num in index]) + " unfit:" +
+              str([unfit_epc[num][7:9] for num in range(0, len(unfit_epc))]))
 
-    for i in range(0, len(list_epc)):
+    for i in range(0, len(fit_epc)):
         plt.plot(core_time[i], fit_phase[i],
                  color=mcolors.TABLEAU_COLORS[colors[i % len_colors]], marker='.', linestyle=':')
 
@@ -624,8 +641,11 @@ with open("./data.txt") as lines:
 
         plt.scatter(core_time[i], core_phase[i],
                     color=mcolors.TABLEAU_COLORS[colors[i % len_colors]], marker='*')
-    plt.legend([str(list_epc[i][7:9]) + ' a:' + str(parameter[i][0]) for i in range(len(list_epc))],
+    plt.legend([str(fit_epc[i][7:9]) + ' a:' + str(parameter[i][0]) for i in range(len(fit_epc))],
                loc='upper right', fontsize='small')   # 设置图例
+    for i in range(0, len(fit_epc)):
+        plt.plot([ori_pos[i]] * 20, [i / 10 for i in range(0, 60, 3)],
+                 color=mcolors.TABLEAU_COLORS[colors[i % len_colors]])
     print(average(parameter, 0))
-    plt.savefig('./Super_V.png', dpi=600)
+    plt.savefig('./Core_V.png', dpi=600)
     plt.show()

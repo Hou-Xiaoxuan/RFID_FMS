@@ -6,33 +6,15 @@
 @File    : real_time_plot.py
 @Function: 多线程处理，实时画图
 '''
+from ObtainData import GenerateListenEpc
 import threading
 import socket
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 
 
-ListEpc = [
-    "FFFF 0011 0000 0000 0000 0000",
-    "FFFF 0012 0000 0000 0000 0000",
-    "FFFF 0013 0000 0000 0000 0000",
-    "FFFF 0014 0000 0000 0000 0000",
-    "FFFF 0015 0000 0000 0000 0000",
-    "FFFF 0016 0000 0000 0000 0000",
-    "FFFF 0017 0000 0000 0000 0000",
-    "FFFF 0018 0000 0000 0000 0000",
-    "FFFF 0019 0000 0000 0000 0000",
-    "FFFF 0020 0000 0000 0000 0000",
-    "FFFF 0021 0000 0000 0000 0000",
-    "FFFF 0022 0000 0000 0000 0000",
-    "FFFF 0023 0000 0000 0000 0000",
-    "FFFF 0024 0000 0000 0000 0000",
-    "FFFF 0025 0000 0000 0000 0000",
-    "FFFF 0026 0000 0000 0000 0000",
-    "FFFF 0027 0000 0000 0000 0000",
-    "FFFF 0028 0000 0000 0000 0000",
-    "FFFF 0029 0000 0000 0000 0000",
-]                                                        # EPC列表
+# EPC列表
+ListEpc = GenerateListenEpc(["1e-2c"])
 ListTime = [[] for i in range(0, len(ListEpc))]          # Time列表
 ListRssi = [[] for i in range(0, len(ListEpc))]          # RSSI列表
 ListPhase = [[] for i in range(0, len(ListEpc))]         # PHASE列表
@@ -58,11 +40,11 @@ def get_tag_information():
         if len(TagInfo) == 5:
             if int(TagInfo[2] != 0):            # 若接收的Rssi为0，则接收错误，开启下一个循环
                 mutex.acquire()                 # 上锁
-                if (TagInfo[0] in ListEpc):
+                if (TagInfo[0][0:9] in ListEpc):
                     if FirstTime == 0:                  # 第一次接收到Tag信息，将FirstTime初始化
                         FirstTime = int(TagInfo[1])
                     TagIndex = ListEpc.index(
-                        TagInfo[0])        # 找出当前Tag所处列表位置
+                        TagInfo[0][0:9])        # 找出当前Tag所处列表位置
                     # 将相应Tag信息入列表
                     ListTime[TagIndex].append(
                         (int(TagInfo[1]) - FirstTime)/1000000)        # 对时间处理为精度0.1s
@@ -79,35 +61,37 @@ def get_tag_information():
 
 def plot():
     plt.ion()  # 开启interactive mod
-    color = list(mcolors.TABLEAU_COLORS.keys())  # 颜色变化
-    figrssi = plt.figure("RSSI")
-    figrssi = figrssi.add_subplot(111)
+    colors = list(mcolors.TABLEAU_COLORS.keys())  # 颜色变化
+    len_colors = len(colors)
+    # figrssi = plt.figure("RSSI")
+    # figrssi = figrssi.add_subplot(111)
     figphase = plt.figure("PHASE")
     figphase = figphase.add_subplot(111)
     while True:
         mutex.acquire()  # 上锁
-        plt.figure("RSSI")
-        plt.cla()
+        # plt.figure("RSSI")
+        # plt.cla()
         plt.figure("PHASE")
         plt.cla()
         for TagIndex in range(0, len(ListEpc)):
             # 设置x为Time
             x_time = ListTime[TagIndex]
             # y为 Rssi 和 Phase
-            y_rssi = ListRssi[TagIndex]
+            # y_rssi = ListRssi[TagIndex]
             y_phase = ListPhase[TagIndex]
 
-            figrssi.plot(x_time, y_rssi, color[TagIndex])  # 设置y轴范围
-            figrssi.set_ylim(-100, -0)                     # 画图
+            # figrssi.plot(x_time, y_rssi, color[TagIndex] % colorlen)  # 设置y轴范围
+            # figrssi.set_ylim(-100, -0)                     # 画图
 
-            figphase.plot(x_time, y_phase, color[TagIndex])  # 设置y轴范围
+            figphase.scatter(x_time, y_phase,
+                             color=mcolors.TABLEAU_COLORS[colors[TagIndex % len_colors]], marker='*')  # 设置y轴范围
             figphase.set_ylim(0, 7)                          # 画图
-            plt.figure("RSSI")
-            plt.legend([num[7:9] for num in ListEpc], loc='lower left',
-                       bbox_to_anchor=(0.77, 0.2), fontsize='x-large')   # 设置图例
+            # plt.figure("RSSI")
+            # plt.legend([num[7:9] for num in ListEpc], loc='lower left',
+            #            bbox_to_anchor=(0.77, 0.2), fontsize='x-large')   # 设置图例
             plt.figure("PHASE")
-            plt.legend([num[7:9] for num in ListEpc], loc='lower left',
-                       bbox_to_anchor=(0.77, 0.2), fontsize='x-large')   # 设置图例
+            plt.legend([num[7:9] for num in ListEpc], loc='best',
+                       fontsize='x-large')   # 设置图例
             # plt.ioff()
         mutex.release()                    # 解锁
         plt.pause(0.1)                     # 暂停0.1秒
@@ -120,14 +104,14 @@ def main():
     # 获取reader信息线程
     t1 = threading.Thread(target=get_tag_information)
     # 画图线程
-    # t2 = threading.Thread(target=plot)
+    t2 = threading.Thread(target=plot)
     # 设置为守护线程
     t1.setDaemon(True)
-    # t2.setDaemon(True)
+    t2.setDaemon(True)
     # 开始获取reader信息线程
     t1.start()
     # 开始画图线程
-    # t2.start()
+    t2.start()
     # 阻塞主线程
     t1.join()
     # t2.join()

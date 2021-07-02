@@ -21,11 +21,12 @@ list_rssi = []           # RSSI列表
 params = []
 
 
-def DisplayData(*params):
+def DisplayData(*params, filename="data.txt"):
     '''
         *params :   展示的标签的列表
     '''
-    list_epc, list_time, list_phase, list_rssi = ObtainData(*params)
+    list_epc, list_time, list_phase, list_rssi = ObtainData(
+        *params, filename=filename)
     colors = list(mcolors.TABLEAU_COLORS.keys())  # 颜色变化
     len_colors = len(mcolors.TABLEAU_COLORS)  # 颜色长度
     for i in range(0, len(list_epc)):
@@ -38,7 +39,7 @@ def DisplayData(*params):
 
 
 def main():
-    DisplayData("1C", "14")
+    DisplayData("1e-2c", filename="data\\2021-07-02\\11-29-08.txt")
 
 
 if __name__ == "__main__":

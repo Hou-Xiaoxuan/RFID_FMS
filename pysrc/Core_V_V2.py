@@ -79,7 +79,7 @@ def check(fit_data, orign_data):
 
     '''
     r2 = r2_score(orign_data, fit_data)
-    return r2 >= 0.90  # 程序运行的关键参数
+    return r2 >= 0  # 程序运行的关键参数
 
 
 def preprocess_data(time, data):
@@ -214,11 +214,9 @@ def up_small_block(data, ct_loc, small_V_size=15, near_PI=1.28):
     可能出现问题，一个小V区和两侧的距离可能不是2PI,而且可能不是处于一个接近0的位置
 
     '''
-    # data = data.copy()
-    # ct_loc = ct_loc.copy()
     i = 1
     while i < len(ct_loc) - 1:
-        if ct_loc[i] - ct_loc[i - 1] < small_V_size:
+        if ct_loc[i] - ct_loc[i - 1] <= small_V_size:
             # 两端的限制
             if data[ct_loc[i - 1] - 1] > 2 * math.pi - near_PI and data[ct_loc[i]] > 2 * math.pi - near_PI:
                 for index in range(ct_loc[i - 1], ct_loc[i]):
@@ -279,17 +277,20 @@ def find_peek_V(time, data, ct_loc, window_size=7):
             j = stack.pop()
             rnum[j] = j - i - 1
         stack.append(i)
+    while True:
+        for i in range(len(data)):
+            if (lnum[i] >= window_size and rnum[i] >= window_size):
+                parameter = np.polyfit(
+                    time[i - window_size:i + window_size + 1], data[i - window_size: i + window_size + 1], 2)
+                if parameter[0] <= -0.05:
+                    peek.append(i)
+        if len(peek) > 0:
+            break
+        window_size -= 1
+    return peek, window_size
 
-    for i in range(len(data)):
-        if (lnum[i] >= window_size and rnum[i] >= window_size):
-            parameter = np.polyfit(
-                time[i - window_size:i + window_size + 1], data[i - window_size: i + window_size + 1], 2)
-            if parameter[0] <= -0.05:
-                peek.append(i)
-    return peek
 
-
-def find_boundary(time, data, ct_loc, peek, small_V_size=15):
+def find_boundary(time, data, ct_loc, peek, small_V_size=15, window_size=7):
     '''
     @Description
     ---------
@@ -313,14 +314,13 @@ def find_boundary(time, data, ct_loc, peek, small_V_size=15):
     左右边界是一个列表，后续需要选择的一个
 
     '''
-    window_size = small_V_size // 2
     l_list, r_list = [], []
     for i in range(len(peek)):
         level = bisect.bisect_right(ct_loc, peek[i]) - 1
         # peek[i] + window_size为v区顶点可以确定的右边界
         l_tmp = cal_boundry_l(
             ct_loc[level], min(peek[i] + window_size, len(data) - 1), time, data)
-        if peek[i] - l_tmp >= 5:
+        if peek[i] + window_size - l_tmp >= 5:
             # 根据找到的左边界，压缩右边的边界
             r_tmp = cal_boundry_r(
                 ct_loc[level + 1], l_tmp, time, data)
@@ -521,8 +521,9 @@ def process(time, data):
     near_PI = 1.28  # 判断数据接近0或2PI的阈值
     too_small = 5   # 判断数据量是否太小的阈值
     jump = math.pi        # 判断phase是否发生跳跃的阈值
-    small_V_size = 15  # 能处理的最小core_V区大小
-    window_size = small_V_size // 2  # 根据small_V_size确定的一般V区大小
+    small_V_size = 20  # 能处理的最小core_V区大小
+    # 根据small_V_size确定的一般V区大小
+    window_size = small_V_size // 2
     # 预处理
     time, data = preprocess_data(time, data)
     # 处理振动数据
@@ -534,11 +535,12 @@ def process(time, data):
     data, ct_loc = up_small_block(
         data, ct_loc, small_V_size, near_PI)
     # 寻找V区顶点
-    peek = find_peek_V(
+    peek, window_size = find_peek_V(
         time, data, ct_loc, window_size)
+    small_V_size = min(2 * window_size + 1, small_V_size)
     # 寻找左右边界
     l_list, r_list = find_boundary(time, data, ct_loc, peek,
-                                   small_V_size)
+                                   small_V_size, window_size)
     # 选择最佳边界
     l, r = select_result(time, data, l_list, r_list)
     return l, r
@@ -549,7 +551,7 @@ list_time = []           # Time列表
 list_rssi = []           # RSSI列表
 list_phase = []          # PHASE列表
 list_epc, list_time, list_phase, __ = ObtainData(
-    "0f", "17", filename="./data.txt")
+    "1e-2c", filename="data\\2021-07-02\\11-27-30.txt")
 
 """粘合数据"""
 ori_pos = []
@@ -598,5 +600,5 @@ for i in range(0, len(fit_epc)):
     plt.plot([ori_pos[i]] * 20, [i / 10 for i in range(0, 60, 3)],
              color=mcolors.TABLEAU_COLORS[colors[i % len_colors]])
 print(average(parameter, 0))
-plt.savefig('./Core_V.png', dpi=600)
+plt.savefig('./data.png', dpi=600)
 plt.show()

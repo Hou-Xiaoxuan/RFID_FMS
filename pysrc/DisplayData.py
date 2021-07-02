@@ -11,7 +11,7 @@ import numpy as np
 import math
 import matplotlib.pyplot as plt
 
-from ObtainData import GenerateListenEpc, ObtainData
+from ObtainData import ObtainData
 
 list_epc = []            # EPC列表
 list_time = []           # Time列表

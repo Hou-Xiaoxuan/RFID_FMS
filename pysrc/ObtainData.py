@@ -23,7 +23,9 @@ def GenerateListenEpc(params):
             temp_list = [str(hex(i))[2:len(hex(i))] for i in temp_list]  # 转回str，去除前缀0
             temp_list = ['0' * (8 - len(i)) + i for i in temp_list]  # 补0
             temp_list = [i[0:4].upper() + ' ' + i[4:8].upper() for i in temp_list]  # 补空格，转大写
-            listen_epc.append(*temp_list)
+            # listen_epc.append(*temp_list)
+            for st in temp_list:
+                listen_epc.append(st)
         else:
             # 处理范围传参
             # if(param.split('-') > 2):
@@ -83,9 +85,9 @@ def ObtainData(*params, filename="./data.txt"):
     return list_epc, list_time, list_phase, list_rssi
 
 
-# def main():
-#     ObtainData("0009-001C", "001D", filename="./data.txt")
+def main():
+    ObtainData("0F 1D", filename="./data.txt")
 
 
-# if __name__ == "__main__":
-#     main()
+if __name__ == "__main__":
+    main()

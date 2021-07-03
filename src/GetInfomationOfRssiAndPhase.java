@@ -91,6 +91,11 @@ public class GetInfomationOfRssiAndPhase {
         } catch (Exception ex) {
             System.out.println(ex.getMessage());
             ex.printStackTrace(System.out);
+        } finally {
+            System.out.println("Program end！");
+            socket.close();
+            os.close();
+            buffer.close();
         }
     }
 }

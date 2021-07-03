@@ -86,7 +86,7 @@ def ObtainData(*params, filename="./data.txt"):
 
 
 def main():
-    ObtainData("0F 1D", filename="./data.txt")
+    ObtainData("0F 1D", filename="./Data/2021-06-28/20-08-15.txt")
 
 
 if __name__ == "__main__":

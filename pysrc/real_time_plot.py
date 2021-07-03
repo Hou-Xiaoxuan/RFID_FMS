@@ -65,7 +65,7 @@ def get_tag_information():
                         TagInfo[0])        # 找出当前Tag所处列表位置
                     # 将相应Tag信息入列表
                     ListTime[TagIndex].append(
-                        (int(TagInfo[1]) - FirstTime)/1000000)        # 对时间处理为精度0.1s
+                        (int(TagInfo[1]) - FirstTime) / 1000000)        # 对时间处理为精度0.1s
                     ListRssi[TagIndex].append(float(TagInfo[2]))
                     ListPhase[TagIndex].append(float(TagInfo[3]))
                     # 若时间大于等于print_len个，则将最先TagInfo出列表,保证列表中最多print_len个

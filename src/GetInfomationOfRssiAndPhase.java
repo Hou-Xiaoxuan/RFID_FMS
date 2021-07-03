@@ -14,15 +14,18 @@ public class GetInfomationOfRssiAndPhase {
     static Socket socket;
     static OutputStream os;
     static BufferedOutputStream buffer;
+    static Settings settings;
+    static String hostname;
+    static ImpinjReader reader;
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException, OctaneSdkException {
         try {
-            String hostname = System.getProperty(SampleProperties.hostname);
+            hostname = System.getProperty(SampleProperties.hostname);
             if (hostname == null) {
                 throw new Exception("Must specify the '" + SampleProperties.hostname + "' property");
             }
 
-            ImpinjReader reader = new ImpinjReader();
+            reader = new ImpinjReader();
 
             // Connect
             System.out.println("Connecting to " + hostname);
@@ -39,7 +42,7 @@ public class GetInfomationOfRssiAndPhase {
             buffer = new BufferedOutputStream(outstr);
 
             // Get the default settings
-            Settings settings = reader.queryDefaultSettings();
+            settings = reader.queryDefaultSettings();
             // see in item-test MaxThroughput Mode
             // 1000 最大可靠性
             // 0 最大吞吐量
@@ -68,13 +71,19 @@ public class GetInfomationOfRssiAndPhase {
             Scanner s = new Scanner(System.in);
             s.nextLine();
 
-            // LiuYin
+            // 编辑器提示关闭s
+            s.close();
+
+        } catch (OctaneSdkException ex) {
+            System.out.println(ex.getMessage());
+        } catch (Exception ex) {
+            System.out.println(ex.getMessage());
+            ex.printStackTrace(System.out);
+        } finally {
             // TCP'connection shutdown
             os.close();
             socket.close();
-            // 编辑器提示关闭s
-            s.close();
-            // LiuYin
+
             // Close file write
             buffer.flush();
             buffer.close();
@@ -86,16 +95,6 @@ public class GetInfomationOfRssiAndPhase {
             reader.disconnect();
 
             System.out.println("Done");
-        } catch (OctaneSdkException ex) {
-            System.out.println(ex.getMessage());
-        } catch (Exception ex) {
-            System.out.println(ex.getMessage());
-            ex.printStackTrace(System.out);
-        } finally {
-            System.out.println("Program end！");
-            socket.close();
-            os.close();
-            buffer.close();
         }
     }
 }

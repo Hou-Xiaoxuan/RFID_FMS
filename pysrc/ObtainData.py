@@ -46,7 +46,7 @@ def GenerateListenEpc(params):
     return listen_epc
 
 
-def ObtainData(*params, filename="./data.txt"):
+def ObtainData(*params, filename="./data.txt", antenna="1,17"):
     '''
     @params         : 任意指定的最长8位的EPC号码
     @function       : 返回实验需要的数据
@@ -57,24 +57,28 @@ def ObtainData(*params, filename="./data.txt"):
     list_phase = []          # PHASE列表
     first_time = 0           # 初始化一个开始时间，每次获得的开始时间不同
 
+    list_antenna = re.split(",| ", antenna)
+    list_antenna = [i for i in list_antenna if i != '']  # 去除空
     listen_epc = GenerateListenEpc(params)
 
     with open(filename) as lines:
         for line in lines:
             tag_info = line.split('#')
-            if len(tag_info) != 5:                   # 接收的TagInfo长度为4，分别为EPC, Time, Rssi, Phase，错误则开启下一个循环
+            if len(tag_info) != 5:                          # 接收的TagInfo长度为4，分别为EPC, Time, Rssi, Phase，错误则开启下一个循环
                 continue
-            elif tag_info[0][0:9] not in listen_epc:
+            elif tag_info[0][0:9] not in listen_epc:        # 筛选在监听列表中的epc号（仅识别前9位
+                continue
+            elif tag_info[4][0:-1] not in list_antenna:           # 筛选监听列表中的天线号（去除tag_info[4]中的\n
                 continue
             else:
-                if first_time == 0:                   # 第一次接收到Tag信息，将FirstTime初始化
+                if first_time == 0:                         # 第一次接收到Tag信息，将FirstTime初始化
                     first_time = int(tag_info[1])
-                if tag_info[0] not in list_epc:       # 若出现新标签，将新标签加入列表，为新标签创建各信息列表
+                if tag_info[0] not in list_epc:             # 若出现新标签，将新标签加入列表，为新标签创建各信息列表
                     list_epc.append(tag_info[0])
                     list_time.append([])
                     list_rssi.append([])
                     list_phase.append([])
-                tag_index = list_epc.index(tag_info[0])        # 找出当前Tag所处列表位置
+                tag_index = list_epc.index(tag_info[0])     # 找出当前Tag所处列表位置
 
                 # 将相应Tag信息入列表
                 list_time[tag_index].append(
@@ -86,7 +90,7 @@ def ObtainData(*params, filename="./data.txt"):
 
 
 def main():
-    ObtainData("0F 1D", filename="./data.txt")
+    ObtainData("0F 1D", filename="./Data/2021-06-28/20-08-15.txt")
 
 
 if __name__ == "__main__":

@@ -19,7 +19,7 @@
 '''
 
 import bisect
-from ObtainData import GenerateListenEpc, ObtainData
+from pysrc.ObtainData import ObtainData
 import matplotlib.colors as mcolors
 import numpy as np
 import math
@@ -544,59 +544,64 @@ def process(time, data):
     return l, r
 
 
-list_epc = []            # 天线检测到的标签列表
-list_time = []           # Time列表
-list_rssi = []           # RSSI列表
-list_phase = []          # PHASE列表
-list_epc, list_time, list_phase, __ = ObtainData(
-    "0f", "17", filename="./data.txt")
+def main():
+    list_epc = []            # 天线检测到的标签列表
+    list_time = []           # Time列表
+    list_rssi = []           # RSSI列表
+    list_phase = []          # PHASE列表
+    list_epc, list_time, list_phase, __ = ObtainData(
+        "1E-2C", filename="./Data/2021-07-04/15-14-32.txt", antenna='1')
 
-"""粘合数据"""
-ori_pos = []
-parameter = []
-core_phase = []
-core_time = []
-fit_phase = []
-fit_epc = []
-unfit_epc = []
-for i in range(0, len(list_epc)):
-    l, r = process(list_time[i], list_phase[i])
-    if l != -1 and r != -1:
-        fit_epc.append(list_epc[i])
-        core_time.append(list_time[i][l:r])
-        core_phase.append(list_phase[i][l:r])
-        [tmp_fit_phase, tmp_parameter] = regression(
-            core_time[-1], core_phase[-1])
-        fit_phase.append(tmp_fit_phase)
-        parameter.append(tmp_parameter)
-        ori_pos.append(-parameter[-1][1] / (2 * parameter[-1][0]))
-    else:
-        unfit_epc.append(list_epc[i])
-colors = list(mcolors.TABLEAU_COLORS.keys())  # 颜色变化
-len_colors = len(mcolors.TABLEAU_COLORS)  # 颜色长度
-# 排序
-sorted_pos = sorted(enumerate(ori_pos), key=lambda x: x[1])
-index = [i[0] for i in sorted_pos]
-pos = [i[1] for i in sorted_pos]
-# 画图
-plt.figure("order")
-plt.title("order is " + str([fit_epc[num][7:9] for num in index]) + " unfit:" +
-          str([unfit_epc[num][7:9] for num in range(0, len(unfit_epc))]))
+    """粘合数据"""
+    ori_pos = []
+    parameter = []
+    core_phase = []
+    core_time = []
+    fit_phase = []
+    fit_epc = []
+    unfit_epc = []
+    for i in range(0, len(list_epc)):
+        l, r = process(list_time[i], list_phase[i])
+        if l != -1 and r != -1:
+            fit_epc.append(list_epc[i])
+            core_time.append(list_time[i][l:r])
+            core_phase.append(list_phase[i][l:r])
+            [tmp_fit_phase, tmp_parameter] = regression(
+                core_time[-1], core_phase[-1])
+            fit_phase.append(tmp_fit_phase)
+            parameter.append(tmp_parameter)
+            ori_pos.append(-parameter[-1][1] / (2 * parameter[-1][0]))
+        else:
+            unfit_epc.append(list_epc[i])
+    colors = list(mcolors.TABLEAU_COLORS.keys())  # 颜色变化
+    len_colors = len(mcolors.TABLEAU_COLORS)  # 颜色长度
+    # 排序
+    sorted_pos = sorted(enumerate(ori_pos), key=lambda x: x[1])
+    index = [i[0] for i in sorted_pos]
+    pos = [i[1] for i in sorted_pos]
+    # 画图
+    plt.figure("order")
+    plt.title("order is " + str([fit_epc[num][7:9] for num in index]) + " unfit:" +
+              str([unfit_epc[num][7:9] for num in range(0, len(unfit_epc))]))
 
-for i in range(0, len(fit_epc)):
-    plt.plot(core_time[i], fit_phase[i],
-             color=mcolors.TABLEAU_COLORS[colors[i % len_colors]], marker='.', linestyle=':')
+    for i in range(0, len(fit_epc)):
+        plt.plot(core_time[i], fit_phase[i],
+                 color=mcolors.TABLEAU_COLORS[colors[i % len_colors]], marker='.', linestyle=':')
 
-    plt.scatter(list_time[i], list_phase[i],
-                color=mcolors.TABLEAU_COLORS[colors[i % len_colors]], marker='*')
+        plt.scatter(list_time[i], list_phase[i],
+                    color=mcolors.TABLEAU_COLORS[colors[i % len_colors]], marker='*')
 
-    plt.scatter(core_time[i], core_phase[i],
-                color=mcolors.TABLEAU_COLORS[colors[i % len_colors]], marker='*')
-plt.legend([str(fit_epc[i][7:9]) + ' a:' + str(parameter[i][0]) for i in range(len(fit_epc))],
-           loc='upper right', fontsize='small')   # 设置图例
-for i in range(0, len(fit_epc)):
-    plt.plot([ori_pos[i]] * 20, [i / 10 for i in range(0, 60, 3)],
-             color=mcolors.TABLEAU_COLORS[colors[i % len_colors]])
-print(average(parameter, 0))
-plt.savefig('./Core_V.png', dpi=600)
-plt.show()
+        plt.scatter(core_time[i], core_phase[i],
+                    color=mcolors.TABLEAU_COLORS[colors[i % len_colors]], marker='*')
+    plt.legend([str(fit_epc[i][7:9]) + ' a:' + str(parameter[i][0]) for i in range(len(fit_epc))],
+               loc='upper right', fontsize='small')   # 设置图例
+    for i in range(0, len(fit_epc)):
+        plt.plot([ori_pos[i]] * 20, [i / 10 for i in range(0, 60, 3)],
+                 color=mcolors.TABLEAU_COLORS[colors[i % len_colors]])
+    print(average(parameter, 0))
+    plt.savefig('./Core_V.png', dpi=600)
+    plt.show()
+
+
+if __name__ == '__main__':
+    main()

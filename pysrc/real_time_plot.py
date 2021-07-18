@@ -6,12 +6,20 @@
 @File    : real_time_plot.py
 @Function: 多线程处理，实时画图
 '''
-from ObtainData import GenerateListenEpc
-import threading
+import os
 import socket
-import matplotlib.pyplot as plt
-import matplotlib.colors as mcolors
+import threading
+import time
+import jpype
+import time
+import os
+import shutil
+import re
 
+import matplotlib.colors as mcolors
+import matplotlib.pyplot as plt
+
+from ObtainData import GenerateListenEpc
 
 # EPC列表
 ListEpc = GenerateListenEpc(["1e-2c"])
@@ -59,6 +67,9 @@ def get_tag_information():
                 mutex.release()  # 解锁
 
 
+mutex = threading.Lock()  # 线程锁
+
+
 def plot():
     plt.ion()  # 开启interactive mod
     colors = list(mcolors.TABLEAU_COLORS.keys())  # 颜色变化
@@ -97,24 +108,42 @@ def plot():
         plt.pause(0.1)                     # 暂停0.1秒
 
 
-mutex = threading.Lock()  # 线程锁
+def start_reader():
+    jarpath = os.path.join(os.path.abspath(
+        "."), 'E:\\OneDrive\\Projects\\RFID\RFID_FMS\\lib\\RFID_FMS.jar')
+    jvmPath = jpype.getDefaultJVMPath()
+    jvmArg = '-Dhostname=SpeedwayR-12-BE-43'
+    if not jpype.isJVMStarted():
+        jpype.startJVM(jvmPath, jvmArg, "-ea",
+                       "-Djava.class.path=%s" % (jarpath))
+    javaClass = jpype.JClass('GetInfomationOfRssiAndPhase')
+    if jpype.isJVMStarted():
+        javaClass.start_reader()
+        
 
 
 def main():
     # 获取reader信息线程
     t1 = threading.Thread(target=get_tag_information)
     # 画图线程
-    t2 = threading.Thread(target=plot)
+    # t2 = threading.Thread(target=plot)
+    # reader线程
+    t3 = threading.Thread(target=start_reader)
     # 设置为守护线程
     t1.setDaemon(True)
-    t2.setDaemon(True)
+    # t2.setDaemon(True)
+    t3.setDaemon(True)
     # 开始获取reader信息线程
     t1.start()
     # 开始画图线程
-    t2.start()
+    # t2.start()
+    # 开启reader线程
+    t3.start()
+
     # 阻塞主线程
     t1.join()
     # t2.join()
+    t3.join()
 
 
 if __name__ == "__main__":

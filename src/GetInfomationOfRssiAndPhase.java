@@ -81,18 +81,24 @@ public class GetInfomationOfRssiAndPhase {
             ex.printStackTrace(System.out);
         } finally {
             // TCP'connection shutdown
-            // os.close();
-            socket.close();
+            if (os != null)
+                os.close();
+            if (socket != null)
+                socket.close();
 
             // Close file write
-            buffer.flush();
-            buffer.close();
-
-            System.out.println("Stopping  " + hostname);
-            reader.stop();
-
-            System.out.println("Disconnecting from " + hostname);
-            reader.disconnect();
+            if (buffer != null) {
+                buffer.flush();
+                buffer.close();
+            }
+            if (reader != null) {
+                System.out.println("Stopping  " + hostname);
+                reader.stop();
+            }
+            if (reader != null) {
+                System.out.println("Disconnecting from " + hostname);
+                reader.disconnect();
+            }
 
             System.out.println("Done");
         }
@@ -161,18 +167,24 @@ public class GetInfomationOfRssiAndPhase {
             ex.printStackTrace(System.out);
         } finally {
             // TCP'connection shutdown
-            // os.close();
-            socket.close();
+            if (os != null)
+                os.close();
+            if (socket != null)
+                socket.close();
 
             // Close file write
-            buffer.flush();
-            buffer.close();
-
-            System.out.println("Stopping  " + hostname);
-            reader.stop();
-
-            System.out.println("Disconnecting from " + hostname);
-            reader.disconnect();
+            if (buffer != null) {
+                buffer.flush();
+                buffer.close();
+            }
+            if (reader != null) {
+                System.out.println("Stopping  " + hostname);
+                reader.stop();
+            }
+            if (reader != null) {
+                System.out.println("Disconnecting from " + hostname);
+                reader.disconnect();
+            }
 
             System.out.println("Done");
         }

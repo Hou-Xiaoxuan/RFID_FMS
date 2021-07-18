@@ -11,7 +11,7 @@ from enum import Enum
 def connect():
     "建立连接"
     tcp_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # tcp设置
-    tcp_socket.bind(('192.168.3.32', 1236))  # IP，端口绑定
+    tcp_socket.bind(('127.0.0.1', 1234))  # IP，端口绑定
     tcp_socket.listen()  # 开始侦听
     print('Wait for connection ...')
     tcp_client, addr = tcp_socket.accept()
@@ -20,16 +20,14 @@ def connect():
 
 
 "变量定义"
-ValidEpc = set(["FFFF 0000 0000 0000 0000 0000", "FFFF 0001 0000 0000 0000 0000",
-                "FFFF 0002 0000 0000 0000 0000", "FFFF 0003 0000 0000 0000 0000",
-                "FFFF 0004 0000 0000 0000 0000", "FFFF 0005 0000 0000 0000 0000",
-                "FFFF 0006 0000 0000 0000 0000", "FFFF 0007 0000 0000 0000 0000",
-                "FFFF 0008 0000 0000 0000 0000", "FFFF 0009 0000 0000 0000 0000",
-                "FFFF 0010 0000 0000 0000 0000", "FFFF 0011 0000 0000 0000 0000",
-                "FFFF 0012 0000 0000 0000 0000", "FFFF 0013 0000 0000 0000 0000",
-                "FFFF 0014 0000 0000 0000 0000", "FFFF 0015 0000 0000 0000 0000",
-                "FFFF 0016 0000 0000 0000 0000", "FFFF 0017 0000 0000 0000 0000",
-                "FFFF 0018 0000 0000 0000 0000", "FFFF 0019 0000 0000 0000 0000"])  # 合法的标签识别
+ValidEpc = set(["0000 002D 2000 0000 0000 0000", "0000 0034 2000 0000 0000 0000",
+                "0000 002E 2000 0000 0000 0000", "0000 0035 2000 0000 0000 0000",
+                "0000 002F 2000 0000 0000 0000", "0000 0036 2000 0000 0000 0000",
+                "0000 0030 2000 0000 0000 0000", "0000 0037 2000 0000 0000 0000",
+                "0000 0031 2000 0000 0000 0000", "0000 0038 2000 0000 0000 0000",
+                "0000 0032 2000 0000 0000 0000", "0000 0039 2000 0000 0000 0000",
+                "0000 0033 2000 0000 0000 0000", "0000 003A 2000 0000 0000 0000",
+                "0000 003B 2000 0000 0000 0000", ])  # 合法的标签识别
 EpcStatue = []  # EPC状态标识
 EpcListen = []  # 正在进行进出库的标签
 
@@ -52,13 +50,13 @@ def work(tcp_client):
     LastUpdateTime = 0
     while(True):
         NowTime = time.time()  # 当前的计算机时间
-        if(LastUpdateTime - NowTime > 10):  # 超过10s没有输出，输出一次标签状态
+        if(NowTime - LastUpdateTime > 1):  # 超过10s没有输出，输出一次标签状态
             LastUpdateTime = NowTime
-            for index in EpcStatue:
-                print("%3d" % index, end=' ')
+            for index in EpcListen:
+                print("%3s" % index[7:9], end=' ')
             print("")
             for statue in EpcStatue:
-                print("%3s", statue, end=' ')
+                print("%3s" % statue, end=' ')
             print("")
 
         data = tcp_client.recv(1024).decode()  # 接收数据并解码
@@ -84,7 +82,7 @@ def work(tcp_client):
         else:
             Change_Flag = False  # 未发生状态改变
 
-        if(NowTime - LastUpdateTime > 5 and Change_Flag == True):
+        if(NowTime - LastUpdateTime > 1 and Change_Flag == True):
             # 如果上次改变大于5秒或10秒没有输出，则输出显示一次
             LastUpdateTime = NowTime
             for index in EpcListen:

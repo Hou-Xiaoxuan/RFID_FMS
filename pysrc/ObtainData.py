@@ -1,4 +1,12 @@
 ﻿'''
+Author: LinXuan
+Date: 2021-06-29 11:41:22
+Description: 
+LastEditors: LinXuan
+LastEditTime: 2021-07-18 18:42:19
+FilePath: \RFID\pysrc\ObtainData.py
+'''
+'''
 @Time    : 2021/06/28
 @Author  : LinXuan
 @File    : ObtainData
@@ -33,7 +41,7 @@ def GenerateListenEpc(params):
             #     return []
             left, right = param.split('-')
             if(left > right):
-                print("left not less than eight")
+                print("left not less than right")
                 return []
             l = int(left, 16)
             while(l <= int(right, 16)):

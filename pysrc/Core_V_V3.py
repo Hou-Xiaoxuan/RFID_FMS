@@ -666,9 +666,28 @@ def adapt_shape(fit_epc, list_time, list_phase, l_list, r_list, dim_l_list, dim_
     return core_time, core_phase
 
 
+def GetOrder(*argv, filename="data", antenna='1'):
+    list_epc, list_time, list_phase, __ = ObtainData(
+        *argv, filename=filename, antenna=antenna)
+    fit_epc, core_time, core_phase, l_list, r_list, dim_l_list, dim_r_list, unfit_epc = process(
+        list_epc, list_time, list_phase)
+    fit_phase, parameter = get_fit(fit_epc, core_time, core_phase)
+    pos, order = get_order(fit_epc, parameter)
+
+    # 直接返回
+    return order
+    # 逼近优化
+    if(len(parameter) > 10):
+        core_time, core_phase = adapt_shape(fit_epc, list_time, list_phase, l_list,
+                                            r_list, dim_l_list, dim_r_list, parameter)
+        fit_phase, parameter = get_fit(fit_epc, core_time, core_phase)
+        pos, order = get_order(fit_epc, parameter)
+    return order
+
+
 def main():
-    ori_epc = "2d-3b"
-    filename = r"data\2021-07-18\16-25-21.txt"
+    ori_epc = "2C-3B"
+    filename = r"data\2021-07-18\16-43-03.txt"
     list_epc, list_time, list_phase, __ = ObtainData(
         ori_epc, filename=filename, antenna='9')
     plot_epc, __, __, __ = ObtainData(
@@ -681,14 +700,14 @@ def main():
     fit_phase, parameter = get_fit(fit_epc, core_time, core_phase)
     pos, order = get_order(fit_epc, parameter)
 
-    # get_plot("one", plot_epc, fit_epc, core_time, core_phase, fit_phase, list_time, list_phase,
-    #          pos, order, parameter, unfit_epc)
+    get_plot("one", plot_epc, fit_epc, core_time, core_phase, fit_phase, list_time, list_phase,
+             pos, order, parameter, unfit_epc)
     if(len(parameter) > 10):
         core_time, core_phase = adapt_shape(fit_epc, list_time, list_phase, l_list,
                                             r_list, dim_l_list, dim_r_list, parameter)
         fit_phase, parameter = get_fit(fit_epc, core_time, core_phase)
         pos, order = get_order(fit_epc, parameter)
-        get_plot("two",  plot_epc, fit_epc, core_time, core_phase, fit_phase, list_time, list_phase,
+        get_plot("two", plot_epc, fit_epc, core_time, core_phase, fit_phase, list_time, list_phase,
                  pos, order, parameter, unfit_epc)
     plt.show()
 

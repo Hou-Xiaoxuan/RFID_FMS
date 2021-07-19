@@ -12,7 +12,8 @@ import socket
 from enum import Enum
 
 
-TIME_OUT = 1    # 1s未被检测到，则判断档案状态
+TIME_OUT = 0.2    # 1s未被检测到，则判断档案状态
+PRINT_TIME_OUT = 1    # 1s未被检测到，则判断档案状态
 
 
 class statue_list(Enum):
@@ -33,13 +34,13 @@ tcp_socket.bind(('127.0.0.1', 1234))
 tcp_socket.listen()
 # EPC列表 需要初始化
 Epc_list = [
-    "0000 002D 2000 0000 0000 0000", "0000 0034 2000 0000 0000 0000",
-    "0000 002E 2000 0000 0000 0000", "0000 0035 2000 0000 0000 0000",
-    "0000 002F 2000 0000 0000 0000", "0000 0036 2000 0000 0000 0000",
-    "0000 0030 2000 0000 0000 0000", "0000 0037 2000 0000 0000 0000",
-    "0000 0031 2000 0000 0000 0000", "0000 0038 2000 0000 0000 0000",
-    "0000 0032 2000 0000 0000 0000", "0000 0039 2000 0000 0000 0000",
-    "0000 0033 2000 0000 0000 0000", "0000 003A 2000 0000 0000 0000",
+    "0000 002D 2000 0000 0000 0000", "0000 002E 2000 0000 0000 0000",
+    "0000 002F 2000 0000 0000 0000", "0000 0030 2000 0000 0000 0000",
+    "0000 0031 2000 0000 0000 0000", "0000 0032 2000 0000 0000 0000",
+    "0000 0033 2000 0000 0000 0000", "0000 0034 2000 0000 0000 0000",
+    "0000 0035 2000 0000 0000 0000", "0000 0036 2000 0000 0000 0000",
+    "0000 0037 2000 0000 0000 0000", "0000 0038 2000 0000 0000 0000",
+    "0000 0039 2000 0000 0000 0000", "0000 003A 2000 0000 0000 0000",
     "0000 003B 2000 0000 0000 0000",
 ]
 # 初始化标签 在库中
@@ -53,33 +54,33 @@ print('Wait for connection ...')
 tcp_client, addr = tcp_socket.accept()
 print('Connected')
 time_print_start = 0
-elen = len(Epc_list)
 while True:
     i = 0
     now_time = time.time()
     if time_print_start == 0:
         time_print_start = now_time
     while i < len(Epc_listen):
-        Epc_timer.pop(i)
-        Epc_tmp = Epc_listen.pop(i)
-        index = Epc_list.index(Epc_tmp)
-        antennaPort = Epc_anti.pop(i)
-        staute_before = Epc_statue[index]
-        i = i - 1
-        if (antennaPort == antennaPort_list.ONE.value):
-            Epc_statue[index] = statue_list.IN.value
-        if (antennaPort == antennaPort_list.NINE.value):
-            Epc_statue[index] = statue_list.OUT.value
+        if (now_time - Epc_timer[i] > TIME_OUT):
+            Epc_timer.pop(i)
+            Epc_tmp = Epc_listen.pop(i)
+            index = Epc_list.index(Epc_tmp)
+            antennaPort = Epc_anti.pop(i)
+            staute_before = Epc_statue[index]
+            i = i - 1
+            if (antennaPort == antennaPort_list.ONE.value):
+                Epc_statue[index] = statue_list.IN.value
+            if (antennaPort == antennaPort_list.NINE.value):
+                Epc_statue[index] = statue_list.OUT.value
         i = i + 1
 
-    if now_time - time_print_start > TIME_OUT:
+    if now_time - time_print_start > PRINT_TIME_OUT:
         print(cnt)
         cnt = cnt + 1
         time_print_start = now_time
-        for index in Epc_listen:
-            print("%3s" % index[7:9], end=' ')
+        for index in Epc_list:
+            print("%-3s" % index[7:9], end='')
         print("")
-        for i in range(0, elen):
+        for i in range(0, len(Epc_list)):
             if Epc_statue[i] == statue_list.IN.value:
                 print("IN", end=' ')
             else:

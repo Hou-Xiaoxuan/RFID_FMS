@@ -607,7 +607,7 @@ def get_order(fit_epc, parameter):
 def get_plot(figname, plot_epc, fit_epc, core_time, core_phase, fit_phase, list_time, list_phase, pos, order, parameter, unfit_epc):
     colors = list(mcolors.TABLEAU_COLORS.keys())  # 颜色变化
     len_colors = len(mcolors.TABLEAU_COLORS)  # 颜色长度
-    plt.figure(figname)
+    plt.figure(figname, figsize=(16, 9))
     plt.title("order is " + str(order) + " unfit:" +
               str([unfit_epc[num][7:9] for num in range(0, len(unfit_epc))]))
 
@@ -621,14 +621,14 @@ def get_plot(figname, plot_epc, fit_epc, core_time, core_phase, fit_phase, list_
 
             plt.scatter(core_time[i], core_phase[i],
                         color=mcolors.TABLEAU_COLORS[colors[i % len_colors]], marker='*')
-    plt.legend([str(fit_epc[i][7:9]) + ' a:' + str(parameter[i][0]) for i in range(len(fit_epc))],
+    plt.legend([str(fit_epc[i][7:9]) + ' a:' + str(round(parameter[i][0], 2)) for i in range(len(fit_epc))],
                loc='upper right', fontsize='small')   # 设置图例
     for i in range(0, len(fit_epc)):
         if (fit_epc[i] in plot_epc):
             plt.plot([pos[i]] * 20, [i / 10 for i in range(0, 60, 3)],
                      color=mcolors.TABLEAU_COLORS[colors[i % len_colors]])
 
-    plt.savefig('./Core_V + figname.png', dpi=600)
+    plt.savefig(figname + '.png', dpi=600)
 
 
 def get_shape_boundary(time, data, l, r, dim_l, dim_r, mu):
@@ -646,20 +646,20 @@ def get_shape_boundary(time, data, l, r, dim_l, dim_r, mu):
 
 def adapt_shape(fit_epc, list_time, list_phase, l_list, r_list, dim_l_list, dim_r_list, parameter):
     a_list = [parameter[i][0] for i in range(len(parameter))]
-    tmp_a_list = a_list.copy()
-    tmp_a_list.remove(max(tmp_a_list))
-    tmp_a_list.remove(min(tmp_a_list))
+    mu = average(a_list)
+    theta = std(a_list)
+    tmp_a_list = []
+    for a in a_list:
+        if a > mu - theta and a < mu + theta:
+            tmp_a_list.append(a)
     mu = average(tmp_a_list)
     theta = std(tmp_a_list)
-    print(mu, theta)
-    print(mu + theta, mu - theta)
     core_time, core_phase = [], []
     for i in range(len(a_list)):
-        if (a_list[i] > mu + 2 * theta or a_list[i] < mu - 2 * theta):
-            l, r = get_shape_boundary(
-                list_time[i], list_phase[i], l_list[i], r_list[i], dim_l_list[i], dim_r_list[i], mu)
-            l_list[i] = l
-            r_list[i] = r
+        l, r = get_shape_boundary(
+            list_time[i], list_phase[i], l_list[i], r_list[i], dim_l_list[i], dim_r_list[i], mu)
+        l_list[i] = l
+        r_list[i] = r
     for i in range(len(a_list)):
         core_time.append(list_time[i][l_list[i]:r_list[i]])
         core_phase.append(list_phase[i][l_list[i]:r_list[i]])
@@ -667,24 +667,21 @@ def adapt_shape(fit_epc, list_time, list_phase, l_list, r_list, dim_l_list, dim_
 
 
 def main():
-    ori_epc = "2d-3b"
-    filename = r"data\2021-07-18\16-25-21.txt"
+    ori_epc = '0f-1d'
+    filename = r"data\2021-07-18\15-57-43.txt"
     list_epc, list_time, list_phase, __ = ObtainData(
         ori_epc, filename=filename, antenna='9')
     plot_epc, __, __, __ = ObtainData(
         ori_epc, filename=filename, antenna='9')
-    # "1c", filename=r"data\2021-06-28\20-09-58.txt", antenna='1'
-    # DisplayData("16", filename=r"data\2021-06-28\20-08-49.txt")
 
     fit_epc, core_time, core_phase, l_list, r_list, dim_l_list, dim_r_list, unfit_epc = process(
         list_epc, list_time, list_phase)
     fit_phase, parameter = get_fit(fit_epc, core_time, core_phase)
     pos, order = get_order(fit_epc, parameter)
-
     # get_plot("one", plot_epc, fit_epc, core_time, core_phase, fit_phase, list_time, list_phase,
     #          pos, order, parameter, unfit_epc)
-    if(len(parameter) > 10):
-        core_time, core_phase = adapt_shape(fit_epc, list_time, list_phase, l_list,
+    if(len(fit_epc) > 10):
+        core_time, core_phase = adapt_shape(fit_epc, [list_time[list_epc.index(epc)] for epc in fit_epc], [list_phase[list_epc.index(epc)] for epc in fit_epc], l_list,
                                             r_list, dim_l_list, dim_r_list, parameter)
         fit_phase, parameter = get_fit(fit_epc, core_time, core_phase)
         pos, order = get_order(fit_epc, parameter)

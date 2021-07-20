@@ -2,14 +2,14 @@
 Author: xv_rong
 Date: 2021-07-19 21:05:04
 LastEditors: xv_rong
-LastEditTime: 2021-07-20 13:20:15
+LastEditTime: 2021-07-20 13:30:02
 Description:
 FilePath: \RFID_FMS\pysrc\right_rate.py
 '''
 
 import os
 from posixpath import dirname
-from Core_V_test import *
+from Core_V_V3 import *
 from ObtainData import ObtainData
 
 

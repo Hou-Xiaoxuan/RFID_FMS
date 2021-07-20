@@ -657,6 +657,25 @@ def adapt_shape(fit_epc, list_time, list_phase, l_list, r_list, dim_l_list, dim_
     return core_time, core_phase
 
 
+def GetOrder(*argv, filename="data", antenna='1'):
+    list_epc, list_time, list_phase, __ = ObtainData(
+        *argv, filename=filename, antenna=antenna)
+    fit_epc, core_time, core_phase, l_list, r_list, dim_l_list, dim_r_list, unfit_epc = process(
+        list_epc, list_time, list_phase)
+    fit_phase, parameter = get_fit(fit_epc, core_time, core_phase)
+    pos, order = get_order(fit_epc, parameter)
+
+    # 直接返回
+    return order
+    # 逼近优化
+    if(len(parameter) > 10):
+        core_time, core_phase = adapt_shape(fit_epc, list_time, list_phase, l_list,
+                                            r_list, dim_l_list, dim_r_list, parameter)
+        fit_phase, parameter = get_fit(fit_epc, core_time, core_phase)
+        pos, order = get_order(fit_epc, parameter)
+    return order
+
+
 def main():
     ori_epc = '0f-1d'
     filename = r"data\2021-07-18\15-57-43.txt"
@@ -676,7 +695,7 @@ def main():
                                             r_list, dim_l_list, dim_r_list, parameter)
         fit_phase, parameter = get_fit(fit_epc, core_time, core_phase)
         pos, order = get_order(fit_epc, parameter)
-        get_plot("two",  plot_epc, fit_epc, core_time, core_phase, fit_phase, list_time, list_phase,
+        get_plot("two", plot_epc, fit_epc, core_time, core_phase, fit_phase, list_time, list_phase,
                  pos, order, parameter, unfit_epc)
     plt.show()
 

@@ -8,6 +8,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.Scanner;
 
 public class GetInfomationOfRssiAndPhase {
@@ -27,7 +28,7 @@ public class GetInfomationOfRssiAndPhase {
 
             reader = new ImpinjReader();
 
-            // Connect
+            // Connect reader
             System.out.println("Connecting to " + hostname);
             reader.connect(hostname);
 
@@ -50,28 +51,27 @@ public class GetInfomationOfRssiAndPhase {
             // write by LiuYin
             settings.getReport().setIncludePhaseAngle(true);
             settings.getReport().setIncludePeakRssi(true);
-            // settings.getReport().setIncludeChannel(true);
             settings.getReport().setIncludeLastSeenTime(true);
             settings.getReport().setIncludeAntennaPortNumber(true);
-            // System.out.println(settings.getReport().getIncludePhaseAngle());
-            // settings.getReport().getIncludePeakRssi();
-            // settings.getReport().getIncludeChannel();
+            // 尝试只开启一个天线口
 
+            settings.getAntennas().disableAll();
+            ArrayList<Integer> antennas = new ArrayList<Integer>();
+            antennas.add(1);
+            settings.getAntennas().enableById(antennas);
             // Apply the new settings
             reader.applySettings(settings);
 
             // connect a listener
-
             reader.setTagReportListener(new TagReportListenerImplementation());
 
             // Start the reader
             reader.start();
 
+            // 关闭连接
             System.out.println("Press Enter to exit.");
             Scanner s = new Scanner(System.in);
             s.nextLine();
-
-            // 编辑器提示关闭s
             s.close();
 
         } catch (OctaneSdkException ex) {

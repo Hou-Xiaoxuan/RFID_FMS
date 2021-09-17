@@ -1,4 +1,4 @@
-﻿'''
+'''
 @Time    : 2021/06/28
 @Author  : LinXuan
 @File    : ObtainData
@@ -20,9 +20,11 @@ def GenerateListenEpc(params):
             temp_list = re.split(",| ", param)  # 以',' ' ' 分割
             temp_list = [i for i in temp_list if i != '']  # 去除空
             temp_list = [int(i, 16) for i in temp_list]  # 转16进制int
-            temp_list = [str(hex(i))[2:len(hex(i))] for i in temp_list]  # 转回str，去除前缀0
+            temp_list = [str(hex(i))[2:len(hex(i))]
+                         for i in temp_list]  # 转回str，去除前缀0
             temp_list = ['0' * (8 - len(i)) + i for i in temp_list]  # 补0
-            temp_list = [i[0:4].upper() + ' ' + i[4:8].upper() for i in temp_list]  # 补空格，转大写
+            temp_list = [i[0:4].upper() + ' ' + i[4:8].upper()
+                         for i in temp_list]  # 补空格，转大写
             # listen_epc.append(*temp_list)
             for st in temp_list:
                 listen_epc.append(st)
@@ -64,11 +66,13 @@ def ObtainData(*params, filename="./data.txt", antenna="1,17"):
     with open(filename) as lines:
         for line in lines:
             tag_info = line.split('#')
-            if len(tag_info) != 5:                          # 接收的TagInfo长度为4，分别为EPC, Time, Rssi, Phase，错误则开启下一个循环
+            # 接收的TagInfo长度为4，分别为EPC, Time, Rssi, Phase，错误则开启下一个循环
+            if len(tag_info) != 5:
                 continue
             elif tag_info[0][0:9] not in listen_epc:        # 筛选在监听列表中的epc号（仅识别前9位
                 continue
-            elif tag_info[4][0:-1] not in list_antenna:           # 筛选监听列表中的天线号（去除tag_info[4]中的\n
+            # 筛选监听列表中的天线号（去除tag_info[4]中的\n
+            elif tag_info[4][0:-1] not in list_antenna:
                 continue
             else:
                 if first_time == 0:                         # 第一次接收到Tag信息，将FirstTime初始化

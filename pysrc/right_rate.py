@@ -2,9 +2,9 @@
 Author: xv_rong
 Date: 2021-07-19 21:05:04
 LastEditors: xv_rong
-LastEditTime: 2021-07-21 18:48:19
+LastEditTime: 2021-09-17 14:43:46
 Description:
-FilePath: \RFID_FMS\pysrc\right_rate.py
+FilePath: /RFID_FMS/pysrc/right_rate.py
 '''
 
 import os

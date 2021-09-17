@@ -1,12 +1,21 @@
 #!/usr/bin/env python
 # -*- encoding: utf-8 -*-
 '''
-@File         : Core_V_V2.py
+@File         : Core_V_V3.py
 @Date         : 2021/06/27 09:06:18
 @Author       : xv_rong
 @version      : 1.0
 @Function     : Core_V_V2拟合，排序，分模块
-version3
+                1. 查找核心V区峰值
+                2. 两边向中间的逼近
+                3. 上升小核心V
+@TODO         : 0. 改进上升核心V区逻辑
+                1. 改善选择核心V区的逻辑
+                2. 根据历史a值判断拟合是否成功
+                3. 找不到时使用其他方法
+                4. 特判分割点在左右两端
+                5. 多个结果返回一个更合理的结果
+                6. 将标签列表，读取数据和画图逻辑分割出去
 '''
 
 import bisect
@@ -320,13 +329,11 @@ def cal_boundry_l(l, r, time, data, r2):
             l += 1
         else:
             # 对[l, half_index)位置进行拟合
-            # 对[half_index, r)位置进行拟合
-            [r_fit_phase, r_parameter] = regression(
-                time[half_index:r], data[half_index:r])
             [l_fit_phase, l_parameter] = regression(
                 time[l:half_index], data[l:half_index])
-            # 这个逻辑可能会过严
-            if check(r_fit_phase, fit_phase[half_index - l:r - l], r2) and r_parameter[0] < 0 and check(l_fit_phase, fit_phase[0: half_index - l], r2) and l_parameter[0] < 0:
+            # 对[half_index, r)位置进行拟合
+            # 检验两次拟合左侧的相似程度，如果相似程度低，则认为范围选取不当
+            if check(l_fit_phase, fit_phase[0:half_index - l], r2) and l_parameter[0] < 0:
                 flag = False
             else:
                 l += 1
@@ -371,10 +378,8 @@ def cal_boundry_r(r, l, time, data, r2):
             # 对[half_index, r)位置进行拟合
             [r_fit_phase, r_parameter] = regression(
                 time[half_index:r], data[half_index:r])
-            [l_fit_phase, l_parameter] = regression(
-                time[l:half_index], data[l:half_index])
             # 这个逻辑可能会过严
-            if check(r_fit_phase, fit_phase[half_index - l:r - l], r2) and r_parameter[0] < 0 and check(l_fit_phase, fit_phase[0: half_index - l], r2) and l_parameter[0] < 0:
+            if check(r_fit_phase, fit_phase[half_index - l:r - l], r2) and r_parameter[0] < 0:
                 flag = False
             else:
                 r -= 1
@@ -531,6 +536,7 @@ def Core_V(time, data):
     near_PI = 1.28  # 判断数据接近0或2PI的阈值
     too_small = 5   # 判断数据量是否太小的阈值
     jump = math.pi - 0.5        # 判断phase是否发生跳跃的阈值
+    up_V_size = 20  # 能处理的最小core_V区大小
     # 根据small_V_size确定的一般V区大小
     min_V_size = 15
     window_size = min_V_size // 2
@@ -542,7 +548,7 @@ def Core_V(time, data):
     # 分割数据
     ct_loc = splite_data(data, jump)
     # 处理小块数据
-    data, ct_loc = up_small_block(data, ct_loc, min_V_size, near_PI)
+
     # 寻找V区顶点
     peek, window_size = find_peek_V(
         time, data, ct_loc, window_size)
@@ -601,7 +607,7 @@ def get_order(fit_epc, parameter):
 def get_plot(figname, plot_epc, fit_epc, core_time, core_phase, fit_phase, list_time, list_phase, pos, order, parameter, unfit_epc):
     colors = list(mcolors.TABLEAU_COLORS.keys())  # 颜色变化
     len_colors = len(mcolors.TABLEAU_COLORS)  # 颜色长度
-    plt.figure(figname, figsize=(16, 9))
+    plt.figure(figname)
     plt.title("order is " + str(order) + " unfit:" +
               str([unfit_epc[num][7:9] for num in range(0, len(unfit_epc))]))
 
@@ -615,14 +621,14 @@ def get_plot(figname, plot_epc, fit_epc, core_time, core_phase, fit_phase, list_
 
             plt.scatter(core_time[i], core_phase[i],
                         color=mcolors.TABLEAU_COLORS[colors[i % len_colors]], marker='*')
-    plt.legend([str(plot_epc[i][7:9]) + ' a:' + str(round(parameter[i][0], 2)) for i in range(len(plot_epc))],
+    plt.legend([str(fit_epc[i][7:9]) + ' a:' + str(parameter[i][0]) for i in range(len(fit_epc))],
                loc='upper right', fontsize='small')   # 设置图例
-    for i in range(len(fit_epc)):
+    for i in range(0, len(fit_epc)):
         if (fit_epc[i] in plot_epc):
             plt.plot([pos[i]] * 20, [i / 10 for i in range(0, 60, 3)],
                      color=mcolors.TABLEAU_COLORS[colors[i % len_colors]])
 
-    plt.savefig(figname + '.png')
+    plt.savefig('./Core_V + figname.png', dpi=600)
 
 
 def get_shape_boundary(time, data, l, r, dim_l, dim_r, mu):
@@ -640,20 +646,20 @@ def get_shape_boundary(time, data, l, r, dim_l, dim_r, mu):
 
 def adapt_shape(fit_epc, list_time, list_phase, l_list, r_list, dim_l_list, dim_r_list, parameter):
     a_list = [parameter[i][0] for i in range(len(parameter))]
-    mu = average(a_list)
-    theta = std(a_list)
-    tmp_a_list = []
-    for a in a_list:
-        if a > mu - theta and a < mu + theta:
-            tmp_a_list.append(a)
+    tmp_a_list = a_list.copy()
+    tmp_a_list.remove(max(tmp_a_list))
+    tmp_a_list.remove(min(tmp_a_list))
     mu = average(tmp_a_list)
     theta = std(tmp_a_list)
+    print(mu, theta)
+    print(mu + theta, mu - theta)
     core_time, core_phase = [], []
     for i in range(len(a_list)):
-        l, r = get_shape_boundary(
-            list_time[i], list_phase[i], l_list[i], r_list[i], dim_l_list[i], dim_r_list[i], mu)
-        l_list[i] = l
-        r_list[i] = r
+        if (a_list[i] > mu + 2 * theta or a_list[i] < mu - 2 * theta):
+            l, r = get_shape_boundary(
+                list_time[i], list_phase[i], l_list[i], r_list[i], dim_l_list[i], dim_r_list[i], mu)
+            l_list[i] = l
+            r_list[i] = r
     for i in range(len(a_list)):
         core_time.append(list_time[i][l_list[i]:r_list[i]])
         core_phase.append(list_phase[i][l_list[i]:r_list[i]])
@@ -661,25 +667,28 @@ def adapt_shape(fit_epc, list_time, list_phase, l_list, r_list, dim_l_list, dim_
 
 
 def main():
-    ori_epc = '0f-1d'
-    filename = r"data\2021-07-18\16-37-33.txt"
+    ori_epc = "0f-1d"
+    filename = r"data\2021-07-11\15-40-47.txt"
     list_epc, list_time, list_phase, __ = ObtainData(
         ori_epc, filename=filename, antenna='9')
     plot_epc, __, __, __ = ObtainData(
-        '14 1C', filename=filename, antenna='9')
+        ori_epc, filename=filename, antenna='9')
+    # "1c", filename=r"data\2021-06-28\20-09-58.txt", antenna='1'
+    # DisplayData("16", filename=r"data\2021-06-28\20-08-49.txt")
 
     fit_epc, core_time, core_phase, l_list, r_list, dim_l_list, dim_r_list, unfit_epc = process(
         list_epc, list_time, list_phase)
     fit_phase, parameter = get_fit(fit_epc, core_time, core_phase)
     pos, order = get_order(fit_epc, parameter)
+
     get_plot("one", plot_epc, fit_epc, core_time, core_phase, fit_phase, list_time, list_phase,
              pos, order, parameter, unfit_epc)
-    if(len(fit_epc) > 10):
-        core_time, core_phase = adapt_shape(fit_epc, [list_time[list_epc.index(epc)] for epc in fit_epc], [list_phase[list_epc.index(epc)] for epc in fit_epc], l_list,
+    if(len(parameter) > 10):
+        core_time, core_phase = adapt_shape(fit_epc, list_time, list_phase, l_list,
                                             r_list, dim_l_list, dim_r_list, parameter)
         fit_phase, parameter = get_fit(fit_epc, core_time, core_phase)
         pos, order = get_order(fit_epc, parameter)
-        get_plot("two", plot_epc, fit_epc, core_time, core_phase, fit_phase, list_time, list_phase,
+        get_plot("two",  plot_epc, fit_epc, core_time, core_phase, fit_phase, list_time, list_phase,
                  pos, order, parameter, unfit_epc)
     plt.show()
 

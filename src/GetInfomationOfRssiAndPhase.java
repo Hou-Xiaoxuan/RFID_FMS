@@ -52,7 +52,7 @@ public class GetInfomationOfRssiAndPhase {
             settings.getReport().setIncludePeakRssi(true);
             // settings.getReport().setIncludeChannel(true);
             settings.getReport().setIncludeLastSeenTime(true);
-            settings.getReport().setIncludeAntennaPortNumber(true);
+            // settings.getReport().setIncludeAntennaPortNumber(true);
             // System.out.println(settings.getReport().getIncludePhaseAngle());
             // settings.getReport().getIncludePeakRssi();
             // settings.getReport().getIncludeChannel();
@@ -81,7 +81,7 @@ public class GetInfomationOfRssiAndPhase {
             ex.printStackTrace(System.out);
         } finally {
             // TCP'connection shutdown
-            os.close();
+            // os.close();
             socket.close();
 
             // Close file write

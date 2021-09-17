@@ -24,7 +24,7 @@ def get_tag_information():
     # tcp设置
     tcp_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     # tcp绑定IP与端口
-    tcp_socket.bind(('127.0.0.1', 1234))
+    tcp_socket.bind(("127.0.0.1", 1234))
     # tcp开始侦听
     tcp_socket.listen()
     print('Wait for connection ...')

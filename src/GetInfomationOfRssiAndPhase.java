@@ -1,6 +1,7 @@
 import com.impinj.octane.ImpinjReader;
 import com.impinj.octane.OctaneSdkException;
 import com.impinj.octane.Settings;
+import com.impinj.octane.AntennaConfigGroup;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -21,16 +22,17 @@ public class GetInfomationOfRssiAndPhase {
 
     public static void main(String[] args) throws IOException, OctaneSdkException {
         try {
-            hostname = System.getProperty(SampleProperties.hostname);
-            if (hostname == null) {
-                throw new Exception("Must specify the '" + SampleProperties.hostname + "' property");
-            }
-
+            // hostname = System.getProperty(SampleProperties.hostname);
+            // if (hostname == null) {
+            // throw new Exception("Must specify the '" + SampleProperties.hostname + "'
+            // property");
+            // }
+            String IP = "192.168.3.110";
             reader = new ImpinjReader();
 
             // Connect reader
             System.out.println("Connecting to " + hostname);
-            reader.connect(hostname);
+            reader.connect(IP);
 
             // LiuYin
             // TCP'connetion build
@@ -53,15 +55,21 @@ public class GetInfomationOfRssiAndPhase {
             settings.getReport().setIncludePeakRssi(true);
             settings.getReport().setIncludeLastSeenTime(true);
             settings.getReport().setIncludeAntennaPortNumber(true);
-            // 尝试只开启一个天线口
 
+            //
             settings.getAntennas().disableAll();
             ArrayList<Integer> antennas = new ArrayList<Integer>();
             antennas.add(1);
-            settings.getAntennas().enableById(antennas);
+            // antennas.add(9);
+            AntennaConfigGroup antennasConfig = settings.getAntennas();
+            antennasConfig.enableById(antennas);
+            settings.setAntennas(antennasConfig);
+            // settings.getAntennas().enableById(antennas);
+
             // Apply the new settings
             reader.applySettings(settings);
 
+            System.out.println(settings.getAntennas());
             // connect a listener
             reader.setTagReportListener(new TagReportListenerImplementation());
 

@@ -14,7 +14,7 @@ import matplotlib.colors as mcolors
 
 
 # EPC列表
-ListEpc = GenerateListenEpc(["1e-2c"])
+ListEpc = GenerateListenEpc(["2d-3b"])
 ListTime = [[] for i in range(0, len(ListEpc))]          # Time列表
 ListRssi = [[] for i in range(0, len(ListEpc))]          # RSSI列表
 ListPhase = [[] for i in range(0, len(ListEpc))]         # PHASE列表

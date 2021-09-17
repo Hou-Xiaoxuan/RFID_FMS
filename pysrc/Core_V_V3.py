@@ -31,6 +31,9 @@ from numpy.lib.function_base import average
 from sklearn.metrics import r2_score
 
 first_time = 0           # 初始化一个开始时间，每次获得的开始时间不同
+ori_epc = "2d-3b"
+filename = r"data/2021-09-17/18-26-44.txt"
+antenna = '1'
 
 
 def regression(time, data):
@@ -667,12 +670,11 @@ def adapt_shape(fit_epc, list_time, list_phase, l_list, r_list, dim_l_list, dim_
 
 
 def main():
-    ori_epc = "0f-1d"
-    filename = r"data\2021-07-11\15-40-47.txt"
+
     list_epc, list_time, list_phase, __ = ObtainData(
-        ori_epc, filename=filename, antenna='9')
+        ori_epc, filename=filename, antenna=antenna)
     plot_epc, __, __, __ = ObtainData(
-        ori_epc, filename=filename, antenna='9')
+        ori_epc, filename=filename, antenna=antenna)
     # "1c", filename=r"data\2021-06-28\20-09-58.txt", antenna='1'
     # DisplayData("16", filename=r"data\2021-06-28\20-08-49.txt")
 

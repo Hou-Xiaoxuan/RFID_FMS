@@ -56,7 +56,6 @@ public class GetInfomationOfRssiAndPhase {
             settings.getReport().setIncludeLastSeenTime(true);
             settings.getReport().setIncludeAntennaPortNumber(true);
 
-            //
             settings.getAntennas().disableAll();
             ArrayList<Integer> antennas = new ArrayList<Integer>();
             antennas.add(1);
@@ -68,8 +67,6 @@ public class GetInfomationOfRssiAndPhase {
 
             // Apply the new settings
             reader.applySettings(settings);
-
-            System.out.println(settings.getAntennas());
             // connect a listener
             reader.setTagReportListener(new TagReportListenerImplementation());
 

@@ -11,7 +11,7 @@ import numpy as np
 import math
 import matplotlib.pyplot as plt
 
-from pysrc.ObtainData import ObtainData
+from ObtainData import ObtainData
 
 
 list_epc = []            # EPC列表
@@ -39,9 +39,9 @@ def DisplayData(*params, filename="data.txt"):
     plt.show()
 
 
-def main():
-    DisplayData("1e-2c", filename="data\\2021-07-02\\11-29-08.txt")
+# def main():
+#     DisplayData("0f-1D", filename=r"data\2021-07-04\17-13-49.txt")
 
 
-if __name__ == "__main__":
-    main()
+# if __name__ == "__main__":
+#     main()

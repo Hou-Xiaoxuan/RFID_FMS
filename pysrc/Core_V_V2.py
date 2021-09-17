@@ -19,7 +19,8 @@
 '''
 
 import bisect
-from pysrc.ObtainData import ObtainData
+from DisplayData import DisplayData
+from ObtainData import ObtainData
 import matplotlib.colors as mcolors
 import numpy as np
 import math
@@ -79,7 +80,7 @@ def check(fit_data, orign_data):
 
     '''
     r2 = r2_score(orign_data, fit_data)
-    return r2 >= 0  # 程序运行的关键参数
+    return r2 >= 0.5  # 程序运行的关键参数
 
 
 def preprocess_data(time, data):
@@ -280,8 +281,10 @@ def find_peek_V(time, data, ct_loc, window_size=7):
     while True:
         for i in range(len(data)):
             if (lnum[i] >= window_size and rnum[i] >= window_size):
+                l = max(i - window_size, 1)
+                r = min(i + window_size + 1, len(data) - 1)
                 parameter = np.polyfit(
-                    time[i - window_size:i + window_size + 1], data[i - window_size: i + window_size + 1], 2)
+                    time[l:r], data[l:r], 2)
                 if parameter[0] <= -0.05:
                     peek.append(i)
         if len(peek) > 0:
@@ -392,7 +395,7 @@ def cal_boundry_l(l, r, time, data):
             else:
                 # 这个逻辑可能会过严
                 # 检验两次拟合左侧的相似程度，如果相似程度低，则认为范围选取不当
-                if check(l_fit_phase, fit_phase[0:half_index - l]) and check(r_fit_phase, fit_phase[half_index - l: r - l]):
+                if check(l_fit_phase, fit_phase[0:half_index - l]):
                     flag = False
                 else:
                     l += 1
@@ -446,7 +449,7 @@ def cal_boundry_r(r, l, time, data):
             else:
                 # 检验拟合右侧的相似程度，如果相似程度低，则认为范围选取不当
                 # 这个逻辑可能会过严
-                if check(r_fit_phase, fit_phase[half_index - l:r - l]) and check(l_fit_phase, fit_phase[0: half_index - l]):
+                if check(r_fit_phase, fit_phase[half_index - l:r - l]):
                     flag = False
                 else:
                     r -= 1
@@ -521,8 +524,9 @@ def process(time, data):
     near_PI = 1.28  # 判断数据接近0或2PI的阈值
     too_small = 5   # 判断数据量是否太小的阈值
     jump = math.pi        # 判断phase是否发生跳跃的阈值
-    small_V_size = 20  # 能处理的最小core_V区大小
+    up_V_size = 20  # 能处理的最小core_V区大小
     # 根据small_V_size确定的一般V区大小
+    small_V_size = 15
     window_size = small_V_size // 2
     # 预处理
     time, data = preprocess_data(time, data)
@@ -533,7 +537,7 @@ def process(time, data):
     ct_loc = splite_data(data, jump)
     # 处理小块数据
     data, ct_loc = up_small_block(
-        data, ct_loc, small_V_size, near_PI)
+        data, ct_loc, up_V_size, near_PI)
     # 寻找V区顶点
     peek, window_size = find_peek_V(
         time, data, ct_loc, window_size)
@@ -552,7 +556,8 @@ def main():
     list_rssi = []           # RSSI列表
     list_phase = []          # PHASE列表
     list_epc, list_time, list_phase, __ = ObtainData(
-        "1E-2C", filename="./Data/2021-07-04/15-14-32.txt", antenna='1')
+        "0f-1d", filename=r"data\2021-06-28\20-09-58.txt", antenna='1')
+    # DisplayData("15", filename=r"data\2021-06-28\20-09-58.txt")
 
     """粘合数据"""
     ori_pos = []

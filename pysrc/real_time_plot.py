@@ -104,14 +104,14 @@ def main():
     # 获取reader信息线程
     t1 = threading.Thread(target=get_tag_information)
     # 画图线程
-    t2 = threading.Thread(target=plot)
+    # t2 = threading.Thread(target=plot)
     # 设置为守护线程
     t1.setDaemon(True)
-    t2.setDaemon(True)
+    # t2.setDaemon(True)
     # 开始获取reader信息线程
     t1.start()
     # 开始画图线程
-    t2.start()
+    # t2.start()
     # 阻塞主线程
     t1.join()
     # t2.join()

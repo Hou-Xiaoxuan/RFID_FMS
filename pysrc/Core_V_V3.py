@@ -31,9 +31,9 @@ from numpy.lib.function_base import average
 from sklearn.metrics import r2_score
 
 first_time = 0           # 初始化一个开始时间，每次获得的开始时间不同
-ori_epc = "2d-3b"
-filename = r"data/2021-09-17/18-26-44.txt"
-antenna = '1'
+ori_epc = '2d-3b'
+filename = r'Data/2021-09-17/18-26-44.txt'
+antenna = '1,9'
 
 
 def regression(time, data):
@@ -152,11 +152,11 @@ def up_small_shake(data, too_small=5, jump=4, near_PI=1.28):
             # 数据量小于等于too_small，并且值处在0附近，将数据上升
             if r - i <= too_small and data[i] < near_PI:
                 for index in range(i, r):
-                    data[index] += 2 * math.pi
+                    data[index] = 2 * math.pi - data[index]
             # 数据量小于等于too_small，并且值处在2PI附近，将数据下降
-            elif r - i <= too_small and data[i] > 2 * math.pi - near_PI:
-                for index in range(i, r):
-                    data[index] -= 2 * math.pi
+            # elif r - i <= too_small and data[i] > 2 * math.pi - near_PI:
+            #     for index in range(i, r):
+            #         data[index] -= 2 * math.pi
     return data
 
 
@@ -537,7 +537,7 @@ def Core_V(time, data):
 
     # 处理在0和6附近不稳定的值，防止出现错误的跳跃
     near_PI = 1.28  # 判断数据接近0或2PI的阈值
-    too_small = 5   # 判断数据量是否太小的阈值
+    too_small = 15   # 判断数据量是否太小的阈值
     jump = math.pi - 0.5        # 判断phase是否发生跳跃的阈值
     up_V_size = 20  # 能处理的最小core_V区大小
     # 根据small_V_size确定的一般V区大小
@@ -546,6 +546,7 @@ def Core_V(time, data):
     # 预处理
     time, data = preprocess_data(time, data)
     # 处理振动数据
+    # TODO: 需要处理
     data = up_small_shake(
         data, too_small, jump, near_PI)
     # 分割数据
@@ -631,7 +632,8 @@ def get_plot(figname, plot_epc, fit_epc, core_time, core_phase, fit_phase, list_
             plt.plot([pos[i]] * 20, [i / 10 for i in range(0, 60, 3)],
                      color=mcolors.TABLEAU_COLORS[colors[i % len_colors]])
 
-    plt.savefig('./Core_V + figname.png', dpi=600)
+    plt.savefig('./' + figname + '.png', dpi=600)
+    print('./' + figname + '.png' + ' saved')
 
 
 def get_shape_boundary(time, data, l, r, dim_l, dim_r, mu):
@@ -669,31 +671,32 @@ def adapt_shape(fit_epc, list_time, list_phase, l_list, r_list, dim_l_list, dim_
     return core_time, core_phase
 
 
-def main():
-
+def main(epc):
+    ori_epc = epc
     list_epc, list_time, list_phase, __ = ObtainData(
         ori_epc, filename=filename, antenna=antenna)
     plot_epc, __, __, __ = ObtainData(
         ori_epc, filename=filename, antenna=antenna)
-    # "1c", filename=r"data\2021-06-28\20-09-58.txt", antenna='1'
-    # DisplayData("16", filename=r"data\2021-06-28\20-08-49.txt")
 
     fit_epc, core_time, core_phase, l_list, r_list, dim_l_list, dim_r_list, unfit_epc = process(
         list_epc, list_time, list_phase)
     fit_phase, parameter = get_fit(fit_epc, core_time, core_phase)
     pos, order = get_order(fit_epc, parameter)
 
-    get_plot("one", plot_epc, fit_epc, core_time, core_phase, fit_phase, list_time, list_phase,
+    get_plot(ori_epc, plot_epc, fit_epc, core_time, core_phase, fit_phase, list_time, list_phase,
              pos, order, parameter, unfit_epc)
-    if(len(parameter) > 10):
-        core_time, core_phase = adapt_shape(fit_epc, list_time, list_phase, l_list,
-                                            r_list, dim_l_list, dim_r_list, parameter)
-        fit_phase, parameter = get_fit(fit_epc, core_time, core_phase)
-        pos, order = get_order(fit_epc, parameter)
-        get_plot("two",  plot_epc, fit_epc, core_time, core_phase, fit_phase, list_time, list_phase,
-                 pos, order, parameter, unfit_epc)
-    plt.show()
+    # if(len(parameter) > 10):
+    #     core_time, core_phase = adapt_shape(fit_epc, list_time, list_phase, l_list,
+    #                                         r_list, dim_l_list, dim_r_list, parameter)
+    #     fit_phase, parameter = get_fit(fit_epc, core_time, core_phase)
+    #     pos, order = get_order(fit_epc, parameter)
+    #     get_plot("two",  plot_epc, fit_epc, core_time, core_phase, fit_phase, list_time, list_phase,
+    #              pos, order, parameter, unfit_epc)
+    # plt.show()
 
 
 if __name__ == '__main__':
-    main()
+    ori = "2c"
+    while(int(ori, 16) <= int("3b", 16)):
+        ori = str(hex(int(ori, 16) + 1))
+        main(ori)

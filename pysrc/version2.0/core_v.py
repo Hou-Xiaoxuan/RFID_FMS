@@ -2,9 +2,9 @@
 Author: xv_rong
 Date: 2021-09-23 21:46:32
 LastEditors: xv_rong
-LastEditTime: 2021-09-24 21:39:23
+LastEditTime: 2021-09-25 10:14:48
 Description: 
-FilePath: /RFID_FMS/core_v.py
+FilePath: /RFID_FMS/pysrc/core_v.py
 '''
 
 import numpy as np
@@ -63,8 +63,6 @@ def regression(time, phase, degree):
     phase_fit = func(time)
     return phase_fit, parameter
 
-# TODO:state
-
 
 def find_N(k):
     l_tmp, r_tmp = 0, 0
@@ -87,10 +85,9 @@ def find_N(k):
                     r.append(r_tmp)
     return l, r
 
-# TODO:state
-
 
 def find_dec(k):
+    k.append(math.inf)
     l_tmp, r_tmp = 0, 0
     l, r = [], []
     state = 0
@@ -106,6 +103,7 @@ def find_dec(k):
                 if r_tmp - l_tmp > 15:
                     l.append(l_tmp)
                     r.append(r_tmp)
+    k.pop()
     return l, r
 
 

@@ -2,18 +2,18 @@
 Author: xv_rong
 Date: 2021-09-23 20:54:21
 LastEditors: xv_rong
-LastEditTime: 2021-09-24 21:41:10
+LastEditTime: 2021-09-25 10:18:32
 Description: 一个数据量增大后的版本
-FilePath: /RFID_FMS/main.py
+FilePath: /RFID_FMS/pysrc/main.py
 '''
-from pysrc.ObtainData import ObtainData
-
+from ManageData.ObtainData import ObtainData
 from core_v import core_v
-from plot_result import plot_order
 from core_v import regression
+from plot_result import plot_order
 
-PLOT_EPC = '2d-2f'
-TEST_EPC = '2d-2f'
+
+PLOT_EPC = '2d-3b'
+TEST_EPC = '2d-3b'
 TEST_ANTENNA = '1,9'
 TEST_FILE = 'Data/2021-09-17/18-10-28.txt'
 SHOW_FIG = True

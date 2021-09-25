@@ -20,7 +20,7 @@ def mkdir(path):
         os.makedirs(path)
 
 
-def main():
+def archive_data():
     # 数据文件名
     file_path = 'data.txt'
     # 判断数据是否存在，不存在，直接退出
@@ -30,7 +30,7 @@ def main():
         # 分割
         [cur_day, cur_time] = cur_time.split(' ')
         # 创建名为当前年月日的文件夹
-        dir_path = os.path.join('data', cur_day)
+        dir_path = os.path.join('Data', cur_day)
         mkdir(dir_path)
         # 通过当前时间为文件命名
         new_name = cur_time + '.txt'
@@ -39,17 +39,13 @@ def main():
         dest_path = os.path.join(dir_path, new_name)
         shutil.copy(file_path, dest_path)
 
-        # 移动png文件
-        file_list = os.listdir()
-        png_list = []
-        for file in file_list:
-            if(file.endswith('.png')):
-                png_list.append(file)
-        for i in range(0, len(png_list)):
-            new_name = cur_time + '-' + str(i) + '.png'
-            dest_path = os.path.join(dir_path, new_name)
-            shutil.move(png_list[i], dest_path)
-
-
-if __name__ == '__main__':
-    main()
+        # # 移动png文件
+        # file_list = os.listdir()
+        # png_list = []
+        # for file in file_list:
+        #     if(file.endswith('.png')):
+        #         png_list.append(file)
+        # for i in range(0, len(png_list)):
+        #     new_name = cur_time + '-' + str(i) + '.png'
+        #     dest_path = os.path.join(dir_path, new_name)
+        #     shutil.move(png_list[i], dest_path)

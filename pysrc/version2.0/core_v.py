@@ -2,9 +2,9 @@
 Author: xv_rong
 Date: 2021-09-23 21:46:32
 LastEditors: xv_rong
-LastEditTime: 2021-09-25 10:14:48
+LastEditTime: 2021-09-25 14:04:14
 Description: 
-FilePath: /RFID_FMS/pysrc/core_v.py
+FilePath: /RFID_FMS/pysrc/version2.0/core_v.py
 '''
 
 import numpy as np
@@ -103,7 +103,7 @@ def find_dec(k):
                 if r_tmp - l_tmp > 15:
                     l.append(l_tmp)
                     r.append(r_tmp)
-    k.pop()
+    k.pop()  # r可能越界,但是可以处理
     return l, r
 
 

@@ -1,15 +1,15 @@
 '''
 Author: xv_rong
 Date: 2021-09-23 20:54:21
-LastEditors: xv_rong
-LastEditTime: 2021-09-25 10:18:32
+LastEditors: LinXuan
+LastEditTime: 2021-09-27 11:28:58
 Description: 一个数据量增大后的版本
-FilePath: /RFID_FMS/pysrc/main.py
+FilePath: /RFID_FMS/pysrc/CoreV2_0/main.py
 '''
 from ManageData.ObtainData import ObtainData
-from core_v import core_v
-from core_v import regression
-from plot_result import plot_order
+from CoreV2_0.core_v import core_v
+from CoreV2_0.core_v import regression
+from CoreV2_0.plot_result import plot_order
 
 
 PLOT_EPC = '2d-3b'

@@ -2,18 +2,22 @@
 Author: xv_rong
 Date: 2021-09-23 21:46:32
 LastEditors: xv_rong
-LastEditTime: 2021-09-25 14:04:14
+LastEditTime: 2021-10-17 19:39:58
 Description: 
-FilePath: /RFID_FMS/pysrc/version2.0/core_v.py
+FilePath: /RFID_FMS/pysrc/CoreV2_0/core_v.py
 '''
 
 import numpy as np
 import math
-DOT = 30
+DOT = 25
+DOT2 = 10
+TURN = 3
+
 JUMP_SHAKE = 4
 JUMP_BLOCK = 3
 SMALL_SHAKE = 20
 NEAR_PI = 1.28
+DEBUG = False
 
 
 def up_small_shake(data, small=20, jump=4, near_PI=1.28):
@@ -64,28 +68,6 @@ def regression(time, phase, degree):
     return phase_fit, parameter
 
 
-def find_N(k):
-    l_tmp, r_tmp = 0, 0
-    l, r = [], []
-    state = 0
-    for i in range(0, len(k) - 1, 1):
-        if state == 0:
-            if k[i] < k[i + 1]:
-                state = 1
-        elif state == 1:
-            if k[i] > k[i + 1]:
-                state = 2
-                l_tmp = i
-        elif state == 2:
-            if k[i] < k[i + 1]:
-                state = 1
-                r_tmp = i + 1
-                if r_tmp - l_tmp > 15:
-                    l.append(l_tmp)
-                    r.append(r_tmp)
-    return l, r
-
-
 def find_dec(k):
     k.append(math.inf)
     l_tmp, r_tmp = 0, 0
@@ -119,6 +101,47 @@ def select_boundary(k, time, l, r):
     return bool(r_ans - l_ans), l_ans, r_ans
 
 
+def compensate_DOT(l, r, k, time, DOT, DOT2, TURN):
+    # 计算应当补偿多少个点
+    if (l - DOT2 + 1 >= 0 and l + 1 <= len(k)):
+        __, parameterl = regression(
+            time[l - DOT2 + 1: l + 1], k[l - DOT2 + 1: l + 1], 1)
+        if parameterl[0] > TURN:
+            l = l - DOT
+        else:
+            l = l - DOT // 2
+    else:
+        l = l - DOT // 2
+
+    if (r - 1 >= 0 and r + DOT2 - 1 <= len(k)):
+        __, parameterr = regression(
+            time[r - 1: r + DOT2 - 1], k[r - 1: r + DOT2 - 1], 1)
+        if parameterr[0] > TURN:
+            r = r + DOT
+        else:
+            r = r + DOT // 2
+    else:
+        r = r + DOT // 2
+    return l, r
+
+
+def limit_PI(l, r, phase):
+    # 将phase的范围限定在做高点左右一个PI内
+    index = np.argmax(phase[l:r])
+    index += l
+    top = phase[index]
+
+    for i in range(index - 1, l - 1, -1):
+        if phase[i] >= top - 2 * math.pi:
+            l = i
+
+    for i in range(index, r, 1):
+        if phase[i] >= top - 2 * math.pi:
+            r = i
+
+    return l, r
+
+
 def core_v(time, phase):
 
     up_small_shake(phase, SMALL_SHAKE, JUMP_SHAKE, NEAR_PI)
@@ -126,10 +149,68 @@ def core_v(time, phase):
 
     k, b = derivation(time, phase, DOT)
     time_one = time[0 + DOT: len(time) - DOT]
-
-    l, r = find_N(k)
-    if len(l) == 0:
-        l, r = find_dec(k)
-
+    l, r = find_dec(k)
     flag, l, r = select_boundary(k, time_one, l, r)
-    return flag, time[l - 10 + DOT: r + 10 + DOT], phase[l - 10 + DOT: r + 10 + DOT]
+
+    if DEBUG:
+        import matplotlib.pyplot as plt
+        k2, b2 = derivation(k, time_one, DOT2)
+        time_two = time_one[0 + DOT2: len(time_one) - DOT2]
+        plt.scatter(time_two, k2)
+
+        # 调试图
+        plt.scatter(time_one, k)
+        plt.scatter(time, phase)
+
+        plt.scatter([time_one[l], time_one[r - 1]], [k[l], k[r - 1]], c='blue')
+
+        plt.plot([x for x in time], [0 for i in time], c='black')
+
+        plt.plot([time_one[l] for x in range(100)], [
+                 i / 100 for i in range(-300, 600, 9)], c='black')
+        plt.plot([time_one[r - 1] for x in range(100)],
+                 [i / 100 for i in range(-300, 600, 9)], c='black')
+
+        if (l - DOT2 + 1 >= 0 and r + DOT2 - 1 <= len(k)):
+            __, parameterl = regression(
+                time_one[l - DOT2 + 1: l + 1], k[l - DOT2 + 1: l + 1], 1)
+            __, parameterr = regression(
+                time_one[r - 1: r + DOT2 - 1], k[r - 1: r + DOT2 - 1], 1)
+
+            plt.title(str(parameterl[0]) + '  ' + str(parameterr[0]))
+
+        plt.rcParams['figure.figsize'] = 100, 100
+
+    l, r = compensate_DOT(l, r, k, time_one, DOT, DOT2, TURN)
+
+    l, r = l + DOT, r + DOT
+
+    l, r = limit_PI(l, r, phase)
+
+    if DEBUG:
+        plt.scatter(time[l: r],
+                    phase[l: r], c='red')
+        plt.show()
+
+    return flag, time[l: r], phase[l: r]
+
+# def find_N(k):
+#     l_tmp, r_tmp = 0, 0
+#     l, r = [], []
+#     state = 0
+#     for i in range(0, len(k) - 1, 1):
+#         if state == 0:
+#             if k[i] < k[i + 1]:
+#                 state = 1
+#         elif state == 1:
+#             if k[i] > k[i + 1]:
+#                 state = 2
+#                 l_tmp = i
+#         elif state == 2:
+#             if k[i] < k[i + 1]:
+#                 state = 1
+#                 r_tmp = i + 1
+#                 if r_tmp - l_tmp > 15:
+#                     l.append(l_tmp)
+#                     r.append(r_tmp)
+#     return l, r

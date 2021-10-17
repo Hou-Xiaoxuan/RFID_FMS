@@ -2,17 +2,19 @@
 Author: xv_rong
 Date: 2021-09-24 13:27:54
 LastEditors: xv_rong
-LastEditTime: 2021-09-25 10:19:32
+LastEditTime: 2021-10-13 15:30:44
 Description: 
-FilePath: /RFID_FMS/pysrc/plot_result.py
+FilePath: /RFID_FMS/pysrc/CoreV2_0/plot_result.py
 '''
 import matplotlib.colors as mcolors
 import matplotlib.pyplot as plt
-SHOW_FIG = True
-SAVE_FIG = False
+SHOW_FIG = False
+SAVE_FIG = True
 
 
-def plot_order(figname, plot_epc, fit_epc, core_time, core_phase, fit_phase, list_time, list_phase, pos, order, parameter, unfit_epc):
+def plot_order(figname, plot_epc, fit_epc, core_time, core_phase, fit_phase, list_time, list_phase, pos, order, parameter, unfit_epc, show_fig=SHOW_FIG, save_fig=SAVE_FIG):
+    SHOW_FIG = show_fig
+    SAVE_FIG = save_fig
     colors = list(mcolors.TABLEAU_COLORS.keys())  # 颜色变化
     len_colors = len(mcolors.TABLEAU_COLORS)  # 颜色长度
     plt.figure(figname)

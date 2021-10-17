@@ -544,7 +544,6 @@ def Core_V(time, data):
     # 预处理
     time, data = preprocess_data(time, data)
     # 处理振动数据
-    # TODO: 需要处理
     data = up_small_shake(
         data, too_small, jump, near_PI)
     # 分割数据

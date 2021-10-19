@@ -2,14 +2,14 @@
 Author: xv_rong
 Date: 2021-09-23 21:46:32
 LastEditors: xv_rong
-LastEditTime: 2021-10-17 19:39:58
+LastEditTime: 2021-10-19 13:27:17
 Description: 
 FilePath: /RFID_FMS/pysrc/CoreV2_0/core_v.py
 '''
 
 import numpy as np
 import math
-DOT = 25
+DOT = 30
 DOT2 = 10
 TURN = 3
 
@@ -17,7 +17,7 @@ JUMP_SHAKE = 4
 JUMP_BLOCK = 3
 SMALL_SHAKE = 20
 NEAR_PI = 1.28
-DEBUG = False
+DEBUG = True
 
 
 def up_small_shake(data, small=20, jump=4, near_PI=1.28):
@@ -154,15 +154,14 @@ def core_v(time, phase):
 
     if DEBUG:
         import matplotlib.pyplot as plt
+        plt.scatter(time, phase, c='green')
+        plt.plot(time_one, k, c='orange')
+        plt.scatter([time_one[l], time_one[r - 1]],
+                    [k[l], k[r - 1]], c='black')
+
         k2, b2 = derivation(k, time_one, DOT2)
         time_two = time_one[0 + DOT2: len(time_one) - DOT2]
-        plt.scatter(time_two, k2)
-
-        # 调试图
-        plt.scatter(time_one, k)
-        plt.scatter(time, phase)
-
-        plt.scatter([time_one[l], time_one[r - 1]], [k[l], k[r - 1]], c='blue')
+        plt.scatter(time_two, k2, c='blue')
 
         plt.plot([x for x in time], [0 for i in time], c='black')
 
@@ -180,6 +179,10 @@ def core_v(time, phase):
             plt.title(str(parameterl[0]) + '  ' + str(parameterr[0]))
 
         plt.rcParams['figure.figsize'] = 100, 100
+        if not flag:
+            plt.show()
+    if not flag:
+        return flag, time[l: r], phase[l: r]
 
     l, r = compensate_DOT(l, r, k, time_one, DOT, DOT2, TURN)
 

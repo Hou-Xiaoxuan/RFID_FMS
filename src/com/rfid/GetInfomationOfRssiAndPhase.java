@@ -65,6 +65,11 @@ public class GetInfomationOfRssiAndPhase {
             antennasConfig.enableById(antennas);
             settings.setAntennas(antennasConfig);
 
+            // settings fixed frequencies is allowed if its non hopping
+            ArrayList<Double> freqList = new ArrayList<Double>();
+            freqList.add(923.375);
+            settings.setTxFrequenciesInMhz(freqList);
+
             // Apply the new settings
             reader.applySettings(settings);
             // connect a listener

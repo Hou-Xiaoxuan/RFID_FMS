@@ -2,7 +2,7 @@
 Author: xv_rong
 Date: 2021-09-23 21:46:32
 LastEditors: xv_rong
-LastEditTime: 2021-10-19 13:27:17
+LastEditTime: 2021-10-31 14:34:32
 Description: 
 FilePath: /RFID_FMS/pysrc/CoreV2_0/core_v.py
 '''
@@ -169,6 +169,7 @@ def core_v(time, phase):
                  i / 100 for i in range(-300, 600, 9)], c='black')
         plt.plot([time_one[r - 1] for x in range(100)],
                  [i / 100 for i in range(-300, 600, 9)], c='black')
+        plt.ylim(-2*math.pi, 4*math.pi)
 
         if (l - DOT2 + 1 >= 0 and r + DOT2 - 1 <= len(k)):
             __, parameterl = regression(
